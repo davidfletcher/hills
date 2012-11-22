@@ -80,10 +80,10 @@ topoHeights :: (Int, Int) -> (Int, Int) -> Topo -> Heights
 topoHeights (minLine, minSamp) (lineCount, sampCount) (Topo arr) =
     arrayFromFn bnds pointAt
     where
-      bnds = ( (minLine, minSamp),
-               (minLine + lineCount - 1, minSamp + sampCount - 1) )
+      bnds = ( (minLine, minSamp), (maxLine, maxSamp) )
+      (maxLine, maxSamp) = (minLine + lineCount - 1, minSamp + sampCount - 1)
       pointAt (y, x) = (fromIntegral (x-minSamp) * 60, -- TODO
-                        fromIntegral (y-minLine) * 60, -- TODO
+                        fromIntegral (y-minLine) * (-60), -- TODO
                         heightFromVal (arr ! (y, x)))
 
 arrayFromFn :: Ix ix => (ix, ix) -> (ix -> a) -> Array ix a
