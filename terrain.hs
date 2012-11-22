@@ -11,10 +11,11 @@ main = do
   topo <- parseFile region "srtm_36_01.asc"
   -- writePGM "out.pgm" topo
   let hs = topoHeights (4450, 1280) (200, 200) topo
-  writeFile "out.stl" (toStl "topo" (model hs))
+  let stl = onPlatform (15, 15, 15) $ model hs
+  writeFile "out.stl" (toString "topo" stl)
 
-model :: Heights -> [Tri]
-model hs = surface hs ++ walls hs ++ base hs
+model :: Heights -> Model
+model hs = fromTris (surface hs ++ walls hs ++ base hs)
 
 surface :: Heights -> [Tri]
 surface = concatMap quadToTri .  quads
