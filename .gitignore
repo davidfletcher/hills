@@ -1,0 +1,6 @@
+*.hi
+*.o
+terrain
+srtm_*.asc
+*.stl
+*.pgm
