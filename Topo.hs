@@ -76,14 +76,21 @@ writePGM fileName (Topo arr) = B.writeFile fileName (toPGM arr)
 
 type Heights = Array (Int, Int) (Double, Double, Double)
 
+-- metres
+-- TODO for other lat/longs
+degreeLatAt56N = 111360
+degreeLongAt56N = 60772
+threeArcsecLatAt56N = 3 * degreeLatAt56N / 3600
+threeArcsecLongAt56N = 3 * degreeLongAt56N / 3600
+
 topoHeights :: (Int, Int) -> (Int, Int) -> Topo -> Heights
 topoHeights (minLine, minSamp) (lineCount, sampCount) (Topo arr) =
     arrayFromFn bnds pointAt
     where
       bnds = ( (minLine, minSamp), (maxLine, maxSamp) )
       (maxLine, maxSamp) = (minLine + lineCount - 1, minSamp + sampCount - 1)
-      pointAt (y, x) = (fromIntegral (x-minSamp) * 60, -- TODO
-                        fromIntegral (y-minLine) * (-60), -- TODO
+      pointAt (y, x) = (fromIntegral (x-minSamp) * threeArcsecLongAt56N,
+                        fromIntegral (y-minLine) * (-threeArcsecLatAt56N),
                         heightFromVal (arr ! (y, x)))
 
 arrayFromFn :: Ix ix => (ix, ix) -> (ix -> a) -> Array ix a
