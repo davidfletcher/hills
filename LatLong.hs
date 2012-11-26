@@ -3,7 +3,7 @@ module LatLong ( LatLong
                , Long
                , NorthSouth
                , EastWest
-               , mkLat
+               , parseLatLong
                , latToDegMinSec
                , longToDegMinSec
                )
@@ -95,8 +95,8 @@ latLongFromSecs (lats, longs) = do
   let long = longFromSecs longs
   return $ LatLong lat long
 
-parse :: String -> Maybe LatLong
-parse s = do
+parseLatLong :: String -> Maybe LatLong
+parseLatLong s = do
   let txt = T.pack s
   let parts = T.split (== ',') . T.filter (not . isSpace) $ txt
   guard (length parts == 2)
