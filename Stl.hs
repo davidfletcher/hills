@@ -1,4 +1,4 @@
-module Stl ( Model, Tri, R3, toString, fromTris, onPlatform ) where
+module Stl ( Model, Tri, R3, toString, fromTris, translate, onPlatform ) where
 
 import Data.List
 import Numeric
