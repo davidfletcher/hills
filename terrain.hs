@@ -7,11 +7,11 @@ import Topo
 
 main :: IO ()
 main = do
-  let region = FileRegion { regFirstLine = 4450, regNumLines = 200 }
+  let region = FileRegion { regFirstLine = 4540, regNumLines = 100 }
   topo <- parseFile region "srtm_36_01.asc"
   -- writePGM "out.pgm" topo
-  let hs = topoHeights (4450, 1280) (200, 200) topo
-  let stl = onPlatform (15, 15, 15) $ model hs
+  let hs = topoHeights (4540, 1280) (100, 200) topo
+  let stl = onPlatform (120, 120, 120) $ model hs
   writeFile "out.stl" (toString "topo" stl)
 
 model :: Heights -> Model
