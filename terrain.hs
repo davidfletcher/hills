@@ -21,9 +21,10 @@ main = do
 parseArgs :: [String] -> Either String ValidOptions
 parseArgs argv = do
   opts <- case getOpt Permute options argv of
-            (opts, [], []) -> Right . foldr (.) id opts $ defaultOptions
+            (opts, [], []) -> Right . applyAll opts $ defaultOptions
             (_, _, errs) -> Left (concat errs)
   validateOptions opts
+      where applyAll = foldr (.) id
 
 run :: ValidOptions -> IO ()
 run opts = do
@@ -60,12 +61,11 @@ defaultOptions =
 options :: [OptDescr (Options -> Options)]
 options = [
   Option ['c'] ["center"]
-             (ReqArg parseCentre "LAT,LONG")
+             (ReqArg (setOptCentre . parseLatLongOpt) "LAT,LONG")
              "center point"
   ]
 
-parseCentre :: String -> (Options -> Options)
-parseCentre = setOptCentre . maybeToEither "bad lat/long" . parseLatLong
-
-maybeToEither :: a -> Maybe b -> Either a b
-maybeToEither msg = maybe (Left msg) Right
+parseLatLongOpt :: String -> Either String LatLong
+parseLatLongOpt s = case parseLatLong s of
+                      Nothing -> Left ("bad lat/long '" ++ s ++ "'")
+                      Just x -> Right x
