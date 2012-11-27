@@ -7,6 +7,7 @@ import qualified Topo
 
 import Control.Monad.Error
 import Data.Maybe
+import Data.Monoid
 import System.Console.GetOpt
 import System.Environment
 
@@ -21,10 +22,9 @@ main = do
 parseArgs :: [String] -> Either String ValidOptions
 parseArgs argv = do
   opts <- case getOpt Permute options argv of
-            (opts, [], []) -> Right . applyAll opts $ defaultOptions
-            (_, _, errs) -> Left (concat errs)
+            (es, [], []) -> Right $ appEndo (mconcat es) defaultOptions
+            (_, _, errs) -> Left $ concat errs
   validateOptions opts
-      where applyAll = foldr (.) id
 
 run :: ValidOptions -> IO ()
 run opts = do
@@ -58,10 +58,10 @@ defaultOptions =
       optCentre = Left "no center point supplied"
     }
 
-options :: [OptDescr (Options -> Options)]
+options :: [OptDescr (Endo Options)]
 options = [
   Option ['c'] ["center"]
-             (ReqArg (setOptCentre . parseLatLongOpt) "LAT,LONG")
+             (ReqArg (Endo . setOptCentre . parseLatLongOpt) "LAT,LONG")
              "center point"
   ]
 
