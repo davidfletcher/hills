@@ -19,49 +19,49 @@ main = do
                         ++ usageInfo usageHeader options)
     Right opts -> run opts
 
-parseArgs :: [String] -> Either String ValidOptions
+parseArgs :: [String] -> Either String Opts
 parseArgs argv = do
   opts <- case getOpt Permute options argv of
-            (es, [], []) -> Right $ appEndo (mconcat es) defaultOptions
+            (es, [], []) -> Right $ appEndo (mconcat es) defaultOpts
             (_, _, errs) -> Left $ concat errs
-  validateOptions opts
+  validateOpts opts
 
-run :: ValidOptions -> IO ()
+run :: Opts -> IO ()
 run opts = do
-  let region = Topo.FileRegion { Topo.regFirstLine = 4540, Topo.regNumLines = 100 }
-  topo <- Topo.parseFile region "srtm_36_01.asc"
+  let empty = Topo.mkTopo
+  topo <- Topo.parseFile (optCentre opts) "srtm_36_01.asc" empty
   -- writePGM "out.pgm" topo
   let hs = Topo.topoHeights (4540, 1280) (100, 200) topo
   let stl = Model.model hs
   writeFile "out.stl" (Stl.toString "topo" stl)
 
-type ValidOptions = LatLong
+data Opts = Opts { optCentre :: LatLong }
 
-validateOptions :: Options -> Either String ValidOptions
-validateOptions opts = do
-  c <- optCentre opts
-  return c
+validateOpts :: ParsedOpts -> Either String Opts
+validateOpts opts = do
+  c <- poptCentre opts
+  return $ Opts { optCentre = c }
 
 usageHeader :: String
 usageHeader  = "usage: terrain [options] -c LAT,LONG"
 
-data Options = Options {
-      optCentre :: Either String LatLong
+data ParsedOpts = ParsedOpts {
+      poptCentre :: Either String LatLong
 } deriving Show
 
-setOptCentre :: Either String LatLong -> Options -> Options
-setOptCentre v opts = opts { optCentre = v }
+setCentre :: Either String LatLong -> ParsedOpts -> ParsedOpts
+setCentre v opts = opts { poptCentre = v }
 
-defaultOptions :: Options
-defaultOptions =
-    Options {
-      optCentre = Left "no center point supplied"
+defaultOpts :: ParsedOpts
+defaultOpts =
+    ParsedOpts {
+      poptCentre = Left "no center point supplied"
     }
 
-options :: [OptDescr (Endo Options)]
+options :: [OptDescr (Endo ParsedOpts)]
 options = [
   Option ['c'] ["center"]
-             (ReqArg (Endo . setOptCentre . parseLatLongOpt) "LAT,LONG")
+             (ReqArg (Endo . setCentre . parseLatLongOpt) "LAT,LONG")
              "center point"
   ]
 

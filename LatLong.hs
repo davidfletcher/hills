@@ -1,11 +1,14 @@
 module LatLong ( LatLong
                , Lat
                , Long
-               , NorthSouth
-               , EastWest
+               , NorthSouth(..)
+               , EastWest(..)
                , parseLatLong
                , latToDegMinSec
                , longToDegMinSec
+               , latLongFromSecs
+               , latLongToSecs
+               , latLongFromDegMinSec
                )
 where
 
@@ -94,6 +97,15 @@ latLongFromSecs (lats, longs) = do
   lat <- latFromSecs lats
   let long = longFromSecs longs
   return $ LatLong lat long
+
+-- TODO handle mkLat failure better
+latLongFromDegMinSec :: (NorthSouth, Int, Int, Int)
+                     -> (EastWest, Int, Int, Int)
+                     -> Maybe LatLong
+latLongFromDegMinSec lat long = Just $ LatLong (mkLat lat) (mkLong long)
+
+latLongToSecs :: LatLong -> (Int, Int)
+latLongToSecs (LatLong (Lat lats) (Long longs)) = (lats, longs)
 
 parseLatLong :: String -> Maybe LatLong
 parseLatLong s = do
