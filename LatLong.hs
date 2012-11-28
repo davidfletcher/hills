@@ -9,6 +9,7 @@ module LatLong ( LatLong
                , latLongFromSecs
                , latLongToSecs
                , latLongFromDegMinSec
+               , latLongFromDoubleDegs
                )
 where
 
@@ -103,6 +104,14 @@ latLongFromDegMinSec :: (NorthSouth, Int, Int, Int)
                      -> (EastWest, Int, Int, Int)
                      -> Maybe LatLong
 latLongFromDegMinSec lat long = Just $ LatLong (mkLat lat) (mkLong long)
+
+latLongFromDoubleDegs :: Int -> (Double, Double) -> Maybe LatLong
+latLongFromDoubleDegs secMult (latDeg, longDeg) =
+    latLongFromSecs (multLatSec, multLongSec)
+        where latSec = round (latDeg * 3600)
+              longSec = round (longDeg * 3600)
+              multLatSec = (latSec `quot` secMult) * secMult
+              multLongSec = (longSec `quot` secMult) * secMult
 
 latLongToSecs :: LatLong -> (Int, Int)
 latLongToSecs (LatLong (Lat lats) (Long longs)) = (lats, longs)

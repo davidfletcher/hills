@@ -65,14 +65,12 @@ parseHeader lines =
     where
       (headerLines, rest) = splitAt 6 lines
 
-headerArea :: Int -> Int -> Int -> Int -> Area
+headerArea :: Double -> Double -> Int -> Int -> Area
 headerArea latDeg longDeg rows cols =
     areaFromSouthwestAndSize sw (rows, cols)
     where
       sw = fromMaybe (error "bad header area") -- TODO
-           (latLongFromDegMinSec latDMS longDMS)
-      latDMS = (if latDeg >= 0 then North else South, abs latDeg, 0, 0)
-      longDMS = (if longDeg >= 0 then East else West, abs longDeg, 0, 0)
+           (latLongFromDoubleDegs secsPerSamp (latDeg, longDeg))
 
 parseLines :: FileRegion -> [BC.ByteString] -> [[Int]]
 parseLines region =

@@ -1,0 +1,9 @@
+Google Maps (turn on lat/long tooltips in Maps Labs)
+
+Mont Blanc 45.8334,6.8650
+
+http://srtm.csi.cgiar.org/
+
+wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_38_03.zip
+unzip srtm_38_03.zip
+terrain -i srtm_30_03.asc -c 45.8334,6.8650
