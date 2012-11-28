@@ -16,9 +16,8 @@ import LatLong
 
 import Data.Array.Unboxed
 import Data.Maybe (fromMaybe)
-import Data.Word
 
-newtype Topo = Topo { topoSects :: [Sect] }
+newtype Topo = Topo [Sect]
 
 mkTopo :: [Sect] -> Topo
 mkTopo = Topo

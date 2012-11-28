@@ -21,7 +21,7 @@ import qualified Data.Text as T
 
 -- Latitude
 
-newtype Lat = Lat { latSec :: Int } deriving (Eq, Ord)
+newtype Lat = Lat Int deriving (Eq, Ord)
 
 instance Show Lat where
     show lat =
@@ -54,7 +54,7 @@ latToDegMinSec (Lat s) = ( if s < 0 then South else North,
 
 -- Longitude
 
-newtype Long = Long { longSec :: Int } deriving (Eq, Ord)
+newtype Long = Long Int deriving (Eq, Ord)
 
 instance Show Long where
     show long =
@@ -90,7 +90,7 @@ longToDegMinSec (Long s) = ( if s < 0 then West else East,
 
 -- Latitude-and-longitude
 
-data LatLong = LatLong { latitude :: Lat, longitude :: Long }
+data LatLong = LatLong Lat Long
                deriving (Eq, Ord, Show)
 
 latLongFromSecs :: (Int, Int) -> Maybe LatLong

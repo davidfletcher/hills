@@ -3,7 +3,6 @@ module Parse (readAsc) where
 import LatLong
 import Topo
 
-import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
 
@@ -47,7 +46,7 @@ fileRegion wholeArea wantedArea =
           wholeN = wholeS + wholeLines * secsPerSamp
 
 parseHeader :: [BC.ByteString] -> (Area, [BC.ByteString])
-parseHeader lines =
+parseHeader ls =
     case map (words . BC.unpack) headerLines of
       [ ["ncols", ncols],
         ["nrows", nrows],
@@ -63,7 +62,7 @@ parseHeader lines =
                rest)
       _ -> error "failed to parse header" -- TODO
     where
-      (headerLines, rest) = splitAt 6 lines
+      (headerLines, rest) = splitAt 6 ls
 
 headerArea :: Double -> Double -> Int -> Int -> Area
 headerArea latDeg longDeg rows cols =

@@ -6,7 +6,6 @@ import qualified Stl
 import qualified Model
 import qualified Topo
 
-import Control.Monad.Error
 import Data.Maybe
 import Data.Monoid
 import System.Console.GetOpt
