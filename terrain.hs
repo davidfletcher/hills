@@ -1,6 +1,7 @@
 module Main where
 
 import LatLong
+import qualified Parse
 import qualified Stl
 import qualified Model
 import qualified Topo
@@ -29,9 +30,8 @@ parseArgs argv = do
 run :: Opts -> IO ()
 run opts = do
   let centre = optCentre opts
-  let empty = Topo.mkTopo
   let area = fromJust $ Topo.areaFromCentreAndSize centre (100, 200)
-  topo <- Topo.parseFile area "srtm_36_01.asc" empty
+  topo <- Parse.readAsc area "srtm_36_01.asc"
   -- writePGM "out.pgm" topo
   let hs = Topo.topoHeights area topo
   let stl = Model.model hs
