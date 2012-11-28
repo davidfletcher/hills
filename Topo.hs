@@ -3,8 +3,11 @@ module Topo ( Topo
             , Sect
             , mkSect
             , Area
+            , areaSize
+            , areaSW
             , areaFromCentreAndSize
             , areaFromSouthwestAndSize
+            , secsPerSamp
             , topoHeights
             , Heights )
 where

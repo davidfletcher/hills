@@ -21,22 +21,30 @@ parseFile area fileName = do
 parseContents :: Area -> BC.ByteString -> Sect
 parseContents wantedArea s =
     let (wholeArea, rest) = parseHeader (BC.lines s)
-        vals = parseLines testRegion rest
+        region = fileRegion wholeArea wantedArea
+        vals = parseLines region rest
     in mkSect wantedArea vals
 
 data FileRegion = FileRegion { regFirstLine :: Int
                              , regNumLines :: Int
                              , regFirstSamp :: Int
                              , regNumSamps :: Int }
+                  deriving Show
 
-regLastLine :: FileRegion -> Int
-regLastLine reg = regFirstLine reg + regNumLines reg - 1
-
--- TODO
-testRegion = FileRegion { regFirstLine = 4540
-                        , regNumLines = 100
-                        , regFirstSamp = 1280
-                        , regNumSamps = 200 }
+-- TODO check we actually have the wanted area
+fileRegion :: Area -> Area -> FileRegion
+fileRegion wholeArea wantedArea =
+    FileRegion
+    { regFirstLine = (wholeN - wantedN) `quot` secsPerSamp
+    , regNumLines = wantedLines
+    , regFirstSamp = (wantedW - wholeW) `quot` secsPerSamp
+    , regNumSamps = wantedSamps }
+    where (wantedLines, wantedSamps) = areaSize wantedArea
+          (wholeLines, _) = areaSize wholeArea
+          (wholeS, wholeW) = latLongToSecs (areaSW wholeArea)
+          (wantedS, wantedW) = latLongToSecs (areaSW wantedArea)
+          wantedN = wantedS + wantedLines * secsPerSamp
+          wholeN = wholeS + wholeLines * secsPerSamp
 
 parseHeader :: [BC.ByteString] -> (Area, [BC.ByteString])
 parseHeader lines =
