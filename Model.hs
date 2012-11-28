@@ -3,7 +3,7 @@ module Model (model) where
 import Topo (Heights)
 import Stl
 
-import Data.Array.Unboxed
+import Data.Array
 
 model :: Heights -> Model
 model hs =
@@ -49,14 +49,13 @@ withZ z (x, y, _) = (x, y, z)
 type Quad = (R3, R3, R3, R3)
 
 quads :: Heights -> [Quad]
-quads hs = map quad neCoords
-    where neCoords = [(y, x) | y <- [miny..maxy-1], x <- [minx..maxx-1]]
+quads hs = map quad swCoords
+    where swCoords = [(y, x) | y <- [miny..maxy-1], x <- [minx..maxx-1]]
           ((miny, minx), (maxy, maxx)) = bounds hs
-          quad (y, x) = ( (pt x y),
-                          (pt x (y+1)),
-                          (pt (x+1) (y+1)),
-                          (pt (x+1) y) )
-          pt x y = hs ! (y, x)
+          quad (y, x) = ( hs ! (y, x),
+                          hs ! (y, x+1),
+                          hs ! (y+1, x+1),
+                          hs ! (y+1, x) )
 
 quadToTri :: Quad -> [Tri]
 quadToTri (a, b, c, d) = [(a, b, c), (c, d, a)]

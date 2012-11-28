@@ -25,10 +25,10 @@ mkTopo = Topo
 
 data Sect = Sect { sectArea :: Area, sectArray :: Arr }
 
-type Metres = Int
+type MetresI = Int
 
 -- TODO check divisions are exact
-heightAt :: LatLong -> Sect -> Metres
+heightAt :: LatLong -> Sect -> MetresI
 heightAt pos sect = sectArray sect ! (y, x)
     where (y, x) = (dLat `quot` secsPerSamp, dLong `quot` secsPerSamp)
           (dLat, dLong) = (posLat - swLat, posLong - swLong)
@@ -55,7 +55,7 @@ areaFromCentreAndSize cent (latSz, longSz) = do
 areaFromSouthwestAndSize :: LatLong -> (SampCount, SampCount) -> Area
 areaFromSouthwestAndSize sw size = Area { areaSW = sw, areaSize = size }
 
-type Arr = UArray (Int, Int) Metres
+type Arr = UArray (Int, Int) MetresI
 
 mkSect :: Area -> [[Int]] -> Sect
 mkSect area vals = Sect area arr
@@ -66,14 +66,16 @@ mkSect area vals = Sect area arr
       (maxy, maxx) = (szy - 1, szx - 1)
       bnds = ((0, 0), (maxy, maxx))
 
-type Heights = Array (Int, Int) (Double, Double, Double)
+type MetresF = Double
+type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 
--- metres
 -- TODO for other lat/longs
+degreeLatAt56N, degreeLongAt56N :: MetresF
 degreeLatAt56N = 111360
 degreeLongAt56N = 60772
-threeArcsecLatAt56N = 3 * degreeLatAt56N / 3600
-threeArcsecLongAt56N = 3 * degreeLongAt56N / 3600
+mPerLatSampAt56N, mPerLongSampAt56N :: MetresF
+mPerLatSampAt56N = fromIntegral secsPerSamp * degreeLatAt56N / 3600
+mPerLongSampAt56N = fromIntegral secsPerSamp * degreeLongAt56N / 3600
 
 topoHeights :: Area -> Topo -> Heights
 topoHeights area (Topo sects) = arrayFromFn bnds pointAt
@@ -84,8 +86,8 @@ topoHeights area (Topo sects) = arrayFromFn bnds pointAt
       (south, west) = latLongToSecs (areaSW area)
       pointAt (y, x) = (dblX, dblY, dblZ)
           where
-            dblX = fromIntegral x * threeArcsecLongAt56N
-            dblY = fromIntegral y * (-threeArcsecLatAt56N)
+            dblX = fromIntegral x * mPerLongSampAt56N
+            dblY = fromIntegral y * mPerLatSampAt56N
             dblZ = fromIntegral (heightAt ll sect)
             ll = fromMaybe (error "lat/long out of range")
                  (latLongFromSecs (south + y * secsPerSamp, west + x * secsPerSamp))
