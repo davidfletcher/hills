@@ -28,10 +28,12 @@ parseArgs argv = do
 
 run :: Opts -> IO ()
 run opts = do
+  let centre = optCentre opts
   let empty = Topo.mkTopo
-  topo <- Topo.parseFile (optCentre opts) "srtm_36_01.asc" empty
+  let area = fromJust $ Topo.areaFromCentreAndSize centre (100, 200)
+  topo <- Topo.parseFile area "srtm_36_01.asc" empty
   -- writePGM "out.pgm" topo
-  let hs = Topo.topoHeights (4540, 1280) (100, 200) topo
+  let hs = Topo.topoHeights area topo
   let stl = Model.model hs
   writeFile "out.stl" (Stl.toString "topo" stl)
 

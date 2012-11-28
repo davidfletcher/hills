@@ -90,7 +90,7 @@ longToDegMinSec (Long s) = ( if s < 0 then West else East,
 -- Latitude-and-longitude
 
 data LatLong = LatLong { latitude :: Lat, longitude :: Long }
-               deriving (Eq, Show)
+               deriving (Eq, Ord, Show)
 
 latLongFromSecs :: (Int, Int) -> Maybe LatLong
 latLongFromSecs (lats, longs) = do

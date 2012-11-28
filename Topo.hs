@@ -1,8 +1,8 @@
 module Topo ( Topo
+            , areaFromCentreAndSize
             , mkTopo
             , topoHeights
             , parseFile
-            , writePGM
             , Heights )
 where
 
@@ -12,8 +12,9 @@ import Data.Array.Unboxed
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Char
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, fromMaybe)
 import Data.Word
+import Debug.Trace
 
 newtype Topo = Topo { topoSects :: [Sect] }
 
@@ -23,8 +24,17 @@ mkTopo = Topo []
 topoArray :: Topo -> Arr
 topoArray = sectArray . head . topoSects -- TODO
 
-data Sect = Sect { sectPos :: LatLong
-                 , sectArray :: Arr }
+data Sect = Sect { sectArea :: Area, sectArray :: Arr }
+
+type Metres = Int
+
+-- TODO check divisions are exact
+heightAt :: LatLong -> Sect -> Metres
+heightAt pos sect = sectArray sect ! (y, x)
+    where (y, x) = (dLat `quot` secsPerSamp, dLong `quot` secsPerSamp)
+          (dLat, dLong) = (posLat - swLat, posLong - swLong)
+          (posLat, posLong) = latLongToSecs pos
+          (swLat, swLong) = latLongToSecs (areaSW (sectArea sect))
 
 type SampCount = Int
 
@@ -43,21 +53,25 @@ areaFromCentreAndSize cent (latSz, longSz) = do
           halfLatSz = (latSz + 1) `quot` 2
           halfLongSz = (longSz + 1) `quot` 2
 
-type Arr = UArray (Int, Int) Int
+type Arr = UArray (Int, Int) Metres
 
 data FileRegion = FileRegion { regFirstLine :: Int
-                             , regNumLines :: Int }
+                             , regNumLines :: Int
+                             , regFirstSamp :: Int
+                             , regNumSamps :: Int }
 
 regLastLine :: FileRegion -> Int
 regLastLine reg = regFirstLine reg + regNumLines reg - 1
 
 -- TODO
-testRegion = FileRegion { regFirstLine = 4540, regNumLines = 100 }
+testRegion = FileRegion { regFirstLine = 4540
+                        , regNumLines = 100
+                        , regFirstSamp = 1280
+                        , regNumSamps = 200 }
 
-parseFile :: LatLong -> String -> Topo -> IO Topo
-parseFile centre fileName (Topo sects) = do
+parseFile :: Area -> String -> Topo -> IO Topo
+parseFile area fileName (Topo sects) = do
   contents <- BC.readFile fileName
-  let area = fromJust $ areaFromCentreAndSize centre (100, 200) -- TODO
   let sect = parseContents area contents
   return $ Topo (sect:sects)
 
@@ -66,9 +80,17 @@ parseContents :: Area -> BC.ByteString -> Sect
 parseContents wantedArea s =
     let (wholeArea, rest) = parseHeader (BC.lines s)
         vals = parseLines testRegion rest
-        arrBounds = ((regFirstLine testRegion, 0), -- TODO
-                     (regLastLine testRegion, 5999))
-    in Sect (areaSW wantedArea) (listArray arrBounds (concat vals))
+    in mkSect wantedArea vals
+
+mkSect :: Area -> [[Int]] -> Sect
+mkSect area vals = Sect area arr
+    where
+      arr = array bnds (zip ixsNorthtoSouth (concat vals))
+      ixsNorthtoSouth = [(y, x) | y <- [maxy, maxy-1 .. 0], x <- [0..maxx]]
+      (szy, szx) = areaSize area
+      (maxy, maxx) = (szy - 1, szx - 1)
+      bnds = ((0, 0), (maxy, maxx))
+
 
 parseHeader :: [BC.ByteString] -> (Area, [BC.ByteString])
 parseHeader lines =
@@ -99,10 +121,15 @@ headerArea latDeg longDeg rows cols =
 
 parseLines :: FileRegion -> [BC.ByteString] -> [[Int]]
 parseLines region =
-    map parseLine . take (regNumLines region) . drop (regFirstLine region)
+    map (parseLine region) . take (regNumLines region) . drop (regFirstLine region)
 
-parseLine :: BC.ByteString -> [Int]
-parseLine = map (read . BC.unpack) . BC.words
+parseLine :: FileRegion -> BC.ByteString -> [Int]
+parseLine region = map (read . BC.unpack)
+                   . take (regNumSamps region)
+                   . drop (regFirstSamp region)
+                   . BC.words
+
+{- TODO
 
 toPixels :: Arr -> [Word8]
 toPixels a = concat (mapArrToLists heightToPix a)
@@ -130,7 +157,8 @@ toPGM arr = B.concat [BC.pack header, B.pack (toPixels arr)]
           ((miny, minx), (maxy, maxx)) = bounds arr
 
 writePGM :: String -> Sect -> IO ()
-writePGM fileName (Sect _ arr) = B.writeFile fileName (toPGM arr)
+writePGM fileName (Sect arr) = B.writeFile fileName (toPGM arr)
+-}
 
 type Heights = Array (Int, Int) (Double, Double, Double)
 
@@ -141,20 +169,20 @@ degreeLongAt56N = 60772
 threeArcsecLatAt56N = 3 * degreeLatAt56N / 3600
 threeArcsecLongAt56N = 3 * degreeLongAt56N / 3600
 
-topoHeights :: (Int, Int) -> (Int, Int) -> Topo -> Heights
-topoHeights (minLine, minSamp) (lineCount, sampCount) (Topo sects) =
-    arrayFromFn bnds pointAt
+topoHeights :: Area -> Topo -> Heights
+topoHeights area (Topo sects) = arrayFromFn bnds pointAt
     where
-      Sect _ arr = head sects -- TODO
-      bnds = ( (minLine, minSamp), (maxLine, maxSamp) )
-      (maxLine, maxSamp) = (minLine + lineCount - 1, minSamp + sampCount - 1)
-      pointAt (y, x) = (fromIntegral (x-minSamp) * threeArcsecLongAt56N,
-                        fromIntegral (y-minLine) * (-threeArcsecLatAt56N),
-                        heightFromVal (arr ! (y, x)))
+      sect = head sects -- TODO
+      bnds = ((0, 0), (szLat - 1, szLong - 1))
+      (szLat, szLong) = areaSize area
+      (south, west) = latLongToSecs (areaSW area)
+      pointAt (y, x) = (dblX, dblY, dblZ)
+          where
+            dblX = fromIntegral x * threeArcsecLongAt56N
+            dblY = fromIntegral y * (-threeArcsecLatAt56N)
+            dblZ = fromIntegral (heightAt ll sect)
+            ll = fromMaybe (error "lat/long out of range")
+                 (latLongFromSecs (south + y * secsPerSamp, west + x * secsPerSamp))
 
 arrayFromFn :: Ix ix => (ix, ix) -> (ix -> a) -> Array ix a
 arrayFromFn bnds f = listArray bnds (map f (range bnds))
-
-heightFromVal :: Int -> Double
-heightFromVal (-9999) = 0
-heightFromVal x = fromIntegral x
