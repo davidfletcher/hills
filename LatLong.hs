@@ -1,4 +1,6 @@
 module LatLong ( LatLong
+               , latitude
+               , longitude
                , Lat
                , Long
                , NorthSouth(..)
@@ -10,6 +12,7 @@ module LatLong ( LatLong
                , latLongToSecs
                , latLongFromDegMinSec
                , latLongFromDoubleDegs
+               , metresPerSecAt
                )
 where
 
@@ -90,7 +93,7 @@ longToDegMinSec (Long s) = ( if s < 0 then West else East,
 
 -- Latitude-and-longitude
 
-data LatLong = LatLong Lat Long
+data LatLong = LatLong { latitude :: Lat, longitude :: Long }
                deriving (Eq, Ord, Show)
 
 latLongFromSecs :: (Int, Int) -> Maybe LatLong
@@ -129,6 +132,28 @@ parseLatLong s = do
 degToArcsec :: Double -> Int
 degToArcsec d = round (d * 3600)
 
+secToRad :: Int -> Double
+secToRad s = deg * ( pi / 180 )
+    where deg = fromIntegral s / 3600
+
+-- Formulae are from
+-- http://en.wikipedia.org/wiki/Latitude#The_length_of_a_degree_of_latitude
+--
+metresPerSecAt :: Lat -> (Double, Double)
+metresPerSecAt (Lat latSec) = (mPerLatSec, mPerLongSec)
+    where theta = secToRad latSec
+          oneSecInRad = pi / (180*3600)
+          mPerLatSec = (oneSecInRad * a * ( 1 - eccSquared ))
+                       / (1 - eccSquared * sinThetaSquared)**(3/2)
+          mPerLongSec = (oneSecInRad * a * cos theta)
+                        / sqrt(1 - eccSquared * sinThetaSquared)
+          eccSquared = (a*a - b*b) / (a*a)
+          sinThetaSquared = sin theta ^ (2 :: Int)
+          (a, b) = (wgs84maj, wgs84min)
+
+wgs84maj, wgs84min :: Double
+wgs84maj = 6378137.0
+wgs84min = 6356752.3142
 
 -- parsing helper
 

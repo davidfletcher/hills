@@ -68,14 +68,6 @@ mkSect area vals = Sect area arr
 type MetresF = Double
 type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 
--- TODO for other lat/longs
-degreeLatAt56N, degreeLongAt56N :: MetresF
-degreeLatAt56N = 111360
-degreeLongAt56N = 60772
-mPerLatSampAt56N, mPerLongSampAt56N :: MetresF
-mPerLatSampAt56N = fromIntegral secsPerSamp * degreeLatAt56N / 3600
-mPerLongSampAt56N = fromIntegral secsPerSamp * degreeLongAt56N / 3600
-
 topoHeights :: Area -> Topo -> Heights
 topoHeights area (Topo sects) = arrayFromFn bnds pointAt
     where
@@ -83,10 +75,14 @@ topoHeights area (Topo sects) = arrayFromFn bnds pointAt
       bnds = ((0, 0), (szLat - 1, szLong - 1))
       (szLat, szLong) = areaSize area
       (south, west) = latLongToSecs (areaSW area)
+      refPoint = areaSW area -- TODO use centre
+      (mPerLatSec, mPerLongSec) = metresPerSecAt (latitude refPoint)
+      (mPerLatSamp, mPerLongSamp) = ( mPerLatSec * fromIntegral secsPerSamp,
+                                      mPerLongSec * fromIntegral secsPerSamp )
       pointAt (y, x) = (dblX, dblY, dblZ)
           where
-            dblX = fromIntegral x * mPerLongSampAt56N
-            dblY = fromIntegral y * mPerLatSampAt56N
+            dblX = fromIntegral x * mPerLongSamp
+            dblY = fromIntegral y * mPerLatSamp
             dblZ = fromIntegral (heightAt ll sect)
             ll = fromMaybe (error "lat/long out of range")
                  (latLongFromSecs (south + y * secsPerSamp, west + x * secsPerSamp))
