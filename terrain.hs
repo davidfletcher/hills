@@ -28,30 +28,37 @@ parseArgs argv = do
 
 run :: Opts -> IO ()
 run opts = do
+  let file = head $ optInFiles opts -- TODO
   let centre = optCentre opts
   let size = optSize opts
-  let file = head $ optInFiles opts -- TODO
   let area = fromJust $ Topo.areaFromCentreAndSize centre size
   topo <- Parse.readAsc area file
-  -- writePGM "out.pgm" topo
-  let hs = Topo.topoHeights area topo
-  let stl = Model.model hs
-  writeFile "out.stl" (Stl.toString "topo" stl)
+  let stl = makeStl opts area topo
+  writeFile "out.stl" stl
+
+makeStl :: Opts -> Topo.Area -> Topo.Topo -> String
+makeStl opts area topo = Stl.toString "topo" stl
+  where hs = Topo.topoHeights area topo
+        baseAlt = optBaseAlt opts
+        stl = Model.model baseAlt hs
 
 data Opts = Opts { optCentre :: LatLong
                  , optSize :: (Int, Int)
-                 , optInFiles :: [String] }
+                 , optInFiles :: [String]
+                 , optBaseAlt :: Double }
 
 validateOpts :: ParsedOpts -> Either String Opts
 validateOpts opts = do
   c <- poptCentre opts
   sz <- poptSize opts
+  baseAlt <- poptBaseAlt opts
   let files = poptInFiles opts
   case files of [] -> Left "no input files listed"
                 _ -> Right ()
   return $ Opts { optCentre = c
                 , optSize = sz
-                , optInFiles = files }
+                , optInFiles = files
+                , optBaseAlt = baseAlt }
 
 usageHeader :: String
 usageHeader  = "usage: terrain [options] -c LAT,LONG"
@@ -60,6 +67,7 @@ data ParsedOpts = ParsedOpts
     { poptCentre :: Either String LatLong
     , poptSize :: Either String (Int, Int)
     , poptInFiles :: [String]
+    , poptBaseAlt :: Either String Double
     } deriving Show
 
 setCentre :: Either String LatLong -> ParsedOpts -> ParsedOpts
@@ -67,6 +75,9 @@ setCentre v opts = opts { poptCentre = v }
 
 setSize :: Either String (Int, Int) -> ParsedOpts -> ParsedOpts
 setSize v opts = opts { poptSize = v }
+
+setBaseAlt :: Either String Double -> ParsedOpts -> ParsedOpts
+setBaseAlt v opts = opts { poptBaseAlt = v }
 
 addInFile :: String -> ParsedOpts -> ParsedOpts
 addInFile v opts = opts { poptInFiles = v : poptInFiles opts }
@@ -77,6 +88,7 @@ defaultOpts =
     { poptCentre = Left "no center point supplied"
     , poptSize = Right (100, 200)
     , poptInFiles = []
+    , poptBaseAlt = Right (-100)
     }
 
 options :: [OptDescr (Endo ParsedOpts)]
@@ -87,7 +99,10 @@ options = [
   Option ['s'] ["size"]
              (ReqArg (Endo . setSize . parseSizeOpt) "LATSAMPSxLONGSAMPS")
              "size in samples",
-  Option ['i'] ["infile"]
+  Option ['b'] ["base-altitude"]
+             (ReqArg (Endo . setBaseAlt . parseDouble) "METRES")
+             "base altitude",
+  Option ['i'] ["in-file"]
              (ReqArg (Endo . addInFile) "FILENAME")
              "input data file"
   ]
@@ -105,3 +120,8 @@ parseSizeOpt s = case (reads latPart, reads longPart) of
       (latPart, rest) = break (== 'x') s
       longPart = case rest of [] -> []
                               (_:xs) -> xs
+
+parseDouble :: String -> Either String Double
+parseDouble s = case reads s of
+                  [(v, [])] -> Right v
+                  _ -> Left $ "bad number '" ++ s ++ "'"

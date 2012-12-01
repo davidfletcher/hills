@@ -5,15 +5,18 @@ import Stl
 
 import Data.Array
 
-model :: Heights -> Model
-model hs =
-    onPlatform (120, 120, 120) $ fromTris (surface hs ++ walls hs ++ base hs)
+model :: Double -> Heights -> Model
+model baseAlt hs =
+    onPlatform (120, 120, 120) . fromTris $ allTris
+        where allTris = surface hs
+                        ++ walls baseAlt hs
+                        ++ base baseAlt hs
 
 surface :: Heights -> [Tri]
 surface = concatMap quadToTri .  quads
 
-walls :: Heights -> [Tri]
-walls hs = concatMap wall [nEdge, eEdge, sEdge, wEdge]
+walls :: Double -> Heights -> [Tri]
+walls baseAlt hs = concatMap (wall baseAlt) [nEdge, eEdge, sEdge, wEdge]
     -- we arrange the orders so they are clockwise
     -- so the triangles we make will be clockwise
     where nEdge = [hs ! (miny, x) | x <- [maxx,maxx-1..minx]]
@@ -22,25 +25,22 @@ walls hs = concatMap wall [nEdge, eEdge, sEdge, wEdge]
           wEdge = [hs ! (y, minx) | y <- [miny..maxy]]
           ((miny, minx), (maxy, maxx)) = bounds hs
 
-base :: Heights -> [Tri]
-base hs = quadToTri ( withZ baseZ nw,
-                      withZ baseZ sw,
-                      withZ baseZ se,
-                      withZ baseZ ne )
+wall :: Double -> [R3] -> [Tri]
+wall baseAlt edge = concatMap quadToTri $ zipWith wallQuad edge (tail edge)
+    where wallQuad top0 top1 = (top0, top1, bottom1, bottom0)
+              where bottom0 = withZ baseAlt top0
+                    bottom1 = withZ baseAlt top1
+
+base :: Double -> Heights -> [Tri]
+base alt hs = quadToTri ( withZ alt nw,
+                          withZ alt sw,
+                          withZ alt se,
+                          withZ alt ne )
     where nw = hs ! (miny, minx)
           ne = hs ! (miny, maxx)
           sw = hs ! (maxy, minx)
           se = hs ! (maxy, maxx)
           ((miny, minx), (maxy, maxx)) = bounds hs
-
-baseZ :: Double
-baseZ = -100 -- TODO
-
-wall :: [R3] -> [Tri]
-wall edge = concatMap quadToTri $ zipWith wallQuad edge (tail edge)
-    where wallQuad top0 top1 = (top0, top1, bottom1, bottom0)
-              where bottom0 = withZ baseZ top0
-                    bottom1 = withZ baseZ top1
 
 withZ :: Double -> R3 -> R3
 withZ z (x, y, _) = (x, y, z)
