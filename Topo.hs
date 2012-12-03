@@ -3,7 +3,8 @@ module Topo ( Topo
             , Sect
             , mkSect
             , topoHeights
-            , Heights )
+            , Heights
+            , secsPerSamp )
 where
 
 import Area
@@ -21,6 +22,9 @@ data Sect = Sect { sectArea :: Area, sectArray :: Arr }
 
 type MetresI = Int
 
+secsPerSamp :: Int
+secsPerSamp = 3
+
 -- TODO check divisions are exact
 heightAt :: LatLong -> Sect -> MetresI
 heightAt pos sect = sectArray sect ! (y, x)
@@ -36,7 +40,7 @@ mkSect area vals = Sect area arr
     where
       arr = array bnds (zip ixsNorthtoSouth (concat vals))
       ixsNorthtoSouth = [(y, x) | y <- [maxy, maxy-1 .. 0], x <- [0..maxx]]
-      (latS, longS) = areaArcsecSize area
+      (latS, longS) = areaSize area
       (latSamps, longSamps) = (latS `quot` secsPerSamp, longS `quot` secsPerSamp)
       (maxy, maxx) = (latSamps - 1, longSamps - 1)
       bnds = ((0, 0), (maxy, maxx))
@@ -49,7 +53,7 @@ topoHeights area (Topo sects) = arrayFromFn bnds pointAt
     where
       sect = head sects -- TODO
       bnds = ((0, 0), (sampsLat - 1, sampsLong - 1))
-      (latS, longS) = areaArcsecSize area
+      (latS, longS) = areaSize area
       (sampsLat, sampsLong) = (latS `quot` secsPerSamp, longS `quot` secsPerSamp)
       (south, west) = latLongToSecs (areaSW area)
       refPoint = areaSW area -- TODO use centre

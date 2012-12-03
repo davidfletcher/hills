@@ -39,10 +39,10 @@ fileRegion wholeArea wantedArea =
     , regNumLines = wantedLines
     , regFirstSamp = (wantedW - wholeW) `quot` secsPerSamp
     , regNumSamps = wantedSamps }
-    where (wantedLat, wantedLong) = areaArcsecSize wantedArea
+    where (wantedLat, wantedLong) = areaSize wantedArea
           (wantedLines, wantedSamps) = (wantedLat `quot` secsPerSamp,
                                         wantedLong `quot` secsPerSamp)
-          (wholeLat, _) = areaArcsecSize wholeArea
+          (wholeLat, _) = areaSize wholeArea
           wholeLines = wholeLat `quot` secsPerSamp
           (wholeS, wholeW) = latLongToSecs (areaSW wholeArea)
           (wantedS, wantedW) = latLongToSecs (areaSW wantedArea)
