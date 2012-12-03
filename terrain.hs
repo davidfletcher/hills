@@ -1,5 +1,6 @@
 module Main where
 
+import qualified Area
 import LatLong
 import qualified Parse
 import qualified Stl
@@ -31,12 +32,12 @@ run opts = do
   let file = head $ optInFiles opts -- TODO
   let centre = optCentre opts
   let size = optSize opts
-  let area = fromJust $ Topo.areaFromCentreAndSize centre size
+  let area = fromJust $ Area.areaFromCentreAndSize centre size
   topo <- Parse.readAsc area file
   let stl = makeStl opts area topo
   writeFile "out.stl" stl
 
-makeStl :: Opts -> Topo.Area -> Topo.Topo -> String
+makeStl :: Opts -> Area.Area -> Topo.Topo -> String
 makeStl opts area topo = Stl.toString "topo" stl
   where hs = Topo.topoHeights area topo
         baseAlt = optBaseAlt opts

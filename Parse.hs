@@ -1,5 +1,6 @@
 module Parse (readAsc) where
 
+import Area
 import LatLong
 import Topo
 
