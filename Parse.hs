@@ -7,6 +7,9 @@ import Topo
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
 
+secsPerSamp :: Int
+secsPerSamp = 3
+
 readAsc :: Area -> String -> IO Topo
 readAsc area fileName = do
     sect <- parseFile area fileName
@@ -23,7 +26,7 @@ parseContents wantedArea s =
     let (wholeArea, rest) = parseHeader (BC.lines s)
         region = fileRegion wholeArea wantedArea
         vals = parseLines region rest
-    in mkSect wantedArea vals
+    in mkSect wantedArea (secsPerSamp, secsPerSamp) vals
 
 data FileRegion = FileRegion { regFirstLine :: Int
                              , regNumLines :: Int
