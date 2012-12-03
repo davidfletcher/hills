@@ -36,8 +36,9 @@ mkSect area vals = Sect area arr
     where
       arr = array bnds (zip ixsNorthtoSouth (concat vals))
       ixsNorthtoSouth = [(y, x) | y <- [maxy, maxy-1 .. 0], x <- [0..maxx]]
-      (szy, szx) = areaSize area
-      (maxy, maxx) = (szy - 1, szx - 1)
+      (latS, longS) = areaArcsecSize area
+      (latSamps, longSamps) = (latS `quot` secsPerSamp, longS `quot` secsPerSamp)
+      (maxy, maxx) = (latSamps - 1, longSamps - 1)
       bnds = ((0, 0), (maxy, maxx))
 
 type MetresF = Double
@@ -47,8 +48,9 @@ topoHeights :: Area -> Topo -> Heights
 topoHeights area (Topo sects) = arrayFromFn bnds pointAt
     where
       sect = head sects -- TODO
-      bnds = ((0, 0), (szLat - 1, szLong - 1))
-      (szLat, szLong) = areaSize area
+      bnds = ((0, 0), (sampsLat - 1, sampsLong - 1))
+      (latS, longS) = areaArcsecSize area
+      (sampsLat, sampsLong) = (latS `quot` secsPerSamp, longS `quot` secsPerSamp)
       (south, west) = latLongToSecs (areaSW area)
       refPoint = areaSW area -- TODO use centre
       (mPerLatSec, mPerLongSec) = metresPerSecAt (latitude refPoint)

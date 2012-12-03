@@ -39,8 +39,11 @@ fileRegion wholeArea wantedArea =
     , regNumLines = wantedLines
     , regFirstSamp = (wantedW - wholeW) `quot` secsPerSamp
     , regNumSamps = wantedSamps }
-    where (wantedLines, wantedSamps) = areaSize wantedArea
-          (wholeLines, _) = areaSize wholeArea
+    where (wantedLat, wantedLong) = areaArcsecSize wantedArea
+          (wantedLines, wantedSamps) = (wantedLat `quot` secsPerSamp,
+                                        wantedLong `quot` secsPerSamp)
+          (wholeLat, _) = areaArcsecSize wholeArea
+          wholeLines = wholeLat `quot` secsPerSamp
           (wholeS, wholeW) = latLongToSecs (areaSW wholeArea)
           (wantedS, wantedW) = latLongToSecs (areaSW wantedArea)
           wantedN = wantedS + wantedLines * secsPerSamp
@@ -67,7 +70,7 @@ parseHeader ls =
 
 headerArea :: Double -> Double -> Int -> Int -> Area
 headerArea latDeg longDeg rows cols =
-    areaFromSouthwestAndSize sw (rows, cols)
+    areaFromSouthwestAndSize sw (rows * secsPerSamp, cols * secsPerSamp)
     where
       sw = fromMaybe (error "bad header area") -- TODO
            (latLongFromDoubleDegs secsPerSamp (latDeg, longDeg))
