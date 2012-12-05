@@ -52,17 +52,21 @@ fromSWAndNE sw ne | latSize < 0 || longSize < 0
           (swLatSec, swLongSec) = latLongToSecs sw
 
 areaIntersect :: Area -> Area -> Maybe Area
-areaIntersect x y | xAllInY = Just x
-                  | yAllInX = Just y
-                  | xSWInY = Just $ fromSWAndNE (areaSW x) (areaNE y)
-                  | ySWInX = Just $ fromSWAndNE (areaSW y) (areaNE x)
+areaIntersect x y | overlaps = Just $ fromSWAndNE maxSW minNE
                   | otherwise = Nothing
-    where xSWInY = areaContains y (areaSW x)
+    where overlaps = xSWInY || xNEInY || ySWInX || yNEInX
+          xSWInY = areaContains y (areaSW x)
           ySWInX = areaContains x (areaSW y)
           xNEInY = areaContains y (areaNE x)
           yNEInX = areaContains x (areaNE y)
-          xAllInY = xSWInY && xNEInY
-          yAllInX = ySWInX && yNEInX
+          maxSW = fromMaybe (error "areaIntersect")
+                  $ latLongFromSecs (max xs ys, max xw yw)
+          minNE = fromMaybe (error "areaIntersect")
+                  $ latLongFromSecs (min xn yn, min xe ye)
+          (xs, xw) = latLongToSecs (areaSW x)
+          (xn, xe) = latLongToSecs (areaNE x)
+          (ys, yw) = latLongToSecs (areaSW y)
+          (yn, ye) = latLongToSecs (areaNE y)
 
 areaContains :: Area -> LatLong -> Bool
 areaContains a pos = lat >= s && lat < n && long >= w && long < e
