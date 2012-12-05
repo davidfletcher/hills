@@ -89,7 +89,7 @@ defaultOpts :: ParsedOpts
 defaultOpts =
     ParsedOpts
     { poptCentre = Left "no center point supplied"
-    , poptSize = Right (100, 200)
+    , poptSize = Right (300, 600) -- TODO might break with non-multiples just now
     , poptInFiles = []
     , poptBaseAlt = Right (-100)
     }
