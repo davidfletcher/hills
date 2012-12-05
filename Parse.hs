@@ -20,13 +20,19 @@ parseFile area fileName = do
   contents <- BC.readFile fileName
   return $ parseContents area contents
 
--- TODO check desired area is in header area
+-- Returns an 0x0 section if the file had nothing from the desired area.
 parseContents :: Area -> BC.ByteString -> Sect
 parseContents wantedArea s =
-    let (wholeArea, rest) = parseHeader (BC.lines s)
-        region = fileRegion wholeArea wantedArea
-        vals = parseLines region rest
-    in mkSect wantedArea (secsPerSamp, secsPerSamp) vals
+    case availArea of
+      Nothing -> mkSect emptyArea seps []
+      Just avail -> mkSect avail seps vals
+    where
+      (wholeArea, rest) = parseHeader (BC.lines s)
+      region = fileRegion wholeArea wantedArea
+      vals = parseLines region rest
+      availArea = areaIntersect wholeArea wantedArea
+      seps = (secsPerSamp, secsPerSamp)
+      emptyArea = areaFromSouthwestAndSize (areaSW wantedArea) (0, 0)
 
 data FileRegion = FileRegion { regFirstLine :: Int
                              , regNumLines :: Int
@@ -34,7 +40,7 @@ data FileRegion = FileRegion { regFirstLine :: Int
                              , regNumSamps :: Int }
                   deriving Show
 
--- TODO check we actually have the wanted area
+-- Assumes wantedArea is wholly contained in wholeArea.
 fileRegion :: Area -> Area -> FileRegion
 fileRegion wholeArea wantedArea =
     FileRegion
