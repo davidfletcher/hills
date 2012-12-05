@@ -6,4 +6,9 @@ http://srtm.csi.cgiar.org/
 
 wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_38_03.zip
 unzip srtm_38_03.zip
-terrain -i srtm_30_03.asc -c 45.8334,6.8650
+
+Mont Blanc: terrain -i srtm_30_03.asc -c 45.8334,6.8650
+
+Mount Kilimanjaro: terrain -c -3.076,37.35 -s 1500x1500 -b 600 srtm_44_13.as
+
+Ben Nevis (crosses two input files): terrain -c 56.796,-5.01 srtm_35_01.asc srtm_36_01.asc
