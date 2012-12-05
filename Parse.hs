@@ -22,16 +22,15 @@ parseFile area fileName = do
 -- Returns an 0x0 section if the file had nothing from the desired area.
 parseContents :: Area -> BC.ByteString -> Sect
 parseContents wantedArea s =
-    case availArea of
+    case areaIntersect wholeArea wantedArea of
       Nothing -> mkSect emptyArea seps []
+          where emptyArea = areaFromSouthwestAndSize (areaSW wantedArea) (0, 0)
       Just avail -> mkSect avail seps vals
-    where
-      (wholeArea, rest) = parseHeader (BC.lines s)
-      region = fileRegion wholeArea wantedArea
-      vals = parseLines region rest
-      availArea = areaIntersect wholeArea wantedArea
-      seps = (secsPerSamp, secsPerSamp)
-      emptyArea = areaFromSouthwestAndSize (areaSW wantedArea) (0, 0)
+          where
+            region = fileRegion wholeArea avail
+            vals = parseLines region rest
+    where (wholeArea, rest) = parseHeader (BC.lines s)
+          seps = (secsPerSamp, secsPerSamp)
 
 data FileRegion = FileRegion { regFirstLine :: Int
                              , regNumLines :: Int
