@@ -1,4 +1,4 @@
-module Parse (readAsc) where
+module Parse (readAscs) where
 
 import Area
 import LatLong
@@ -10,10 +10,9 @@ import Data.Maybe (fromMaybe)
 secsPerSamp :: Int
 secsPerSamp = 3
 
-readAsc :: Area -> String -> IO Topo
-readAsc area fileName = do
-    sect <- parseFile area fileName
-    return $ mkTopo [sect]
+readAscs :: Area -> [String] -> IO Topo
+readAscs area fileNames =
+  fmap mkTopo $ mapM (parseFile area) fileNames
 
 parseFile :: Area -> String -> IO Sect
 parseFile area fileName = do

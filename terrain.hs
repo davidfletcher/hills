@@ -23,17 +23,19 @@ main = do
 parseArgs :: [String] -> Either String Opts
 parseArgs argv = do
   opts <- case getOpt Permute options argv of
-            (es, [], []) -> Right $ appEndo (mconcat es) defaultOpts
-            (_, _, errs) -> Left $ concat errs
+            (es, infiles, []) ->
+                Right $ setInFiles infiles . appEndo (mconcat es) $ defaultOpts
+            (_, _, errs) ->
+                Left $ concat errs
   validateOpts opts
 
 run :: Opts -> IO ()
 run opts = do
-  let file = head $ optInFiles opts -- TODO
+  let files = optInFiles opts -- TODO
   let centre = optCentre opts
   let size = optSize opts
   let area = fromJust $ Area.areaFromCentreAndSize centre size
-  topo <- Parse.readAsc area file
+  topo <- Parse.readAscs area files
   let stl = makeStl opts area topo
   writeFile "out.stl" stl
 
@@ -62,7 +64,7 @@ validateOpts opts = do
                 , optBaseAlt = baseAlt }
 
 usageHeader :: String
-usageHeader  = "usage: terrain [options] -c LAT,LONG"
+usageHeader  = "usage: terrain [options] -c LAT,LONG INFILES..."
 
 data ParsedOpts = ParsedOpts
     { poptCentre :: Either String LatLong
@@ -80,8 +82,8 @@ setSize v opts = opts { poptSize = v }
 setBaseAlt :: Either String Double -> ParsedOpts -> ParsedOpts
 setBaseAlt v opts = opts { poptBaseAlt = v }
 
-addInFile :: String -> ParsedOpts -> ParsedOpts
-addInFile v opts = opts { poptInFiles = v : poptInFiles opts }
+setInFiles :: [String] -> ParsedOpts -> ParsedOpts
+setInFiles v opts = opts { poptInFiles = v }
 
 defaultOpts :: ParsedOpts
 defaultOpts =
@@ -102,10 +104,7 @@ options = [
              "size in samples",
   Option ['b'] ["base-altitude"]
              (ReqArg (Endo . setBaseAlt . parseDouble) "METRES")
-             "base altitude",
-  Option ['i'] ["in-file"]
-             (ReqArg (Endo . addInFile) "FILENAME")
-             "input data file"
+             "base altitude"
   ]
 
 parseLatLongOpt :: String -> Either String LatLong
