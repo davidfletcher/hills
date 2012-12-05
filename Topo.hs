@@ -18,15 +18,26 @@ newtype Topo = Topo [Sect]
 mkTopo :: [Sect] -> Topo
 mkTopo = Topo
 
+topoSep :: Topo -> ArcsecSize
+topoSep (Topo []) = error "topoSep: no sections"
+topoSep (Topo (x:_)) = sectSep x
+
+type MetresI = Int
+
+heightAt :: LatLong -> Topo -> MetresI
+heightAt pos (Topo sects) =
+    case sectsContaining of
+      [] -> error "heightAt: no section containing position"
+      (s:_) -> sectHeightAt pos s
+    where sectsContaining = filter (flip areaContains pos . sectArea) sects
+
 data Sect = Sect { sectArea :: Area
                  , sectSep :: ArcsecSize
                  , sectArray :: Arr }
 
-type MetresI = Int
-
 -- TODO check divisions are exact
-heightAt :: LatLong -> Sect -> MetresI
-heightAt pos sect = sectArray sect ! (y, x)
+sectHeightAt :: LatLong -> Sect -> MetresI
+sectHeightAt pos sect = sectArray sect ! (y, x)
     where (y, x) = (dLat `quot` latSep, dLong `quot` longSep)
           (latSep, longSep) = sectSep sect
           (dLat, dLong) = (posLat - swLat, posLong - swLong)
@@ -49,13 +60,12 @@ type MetresF = Double
 type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 
 topoHeights :: Area -> Topo -> Heights
-topoHeights area (Topo sects) = arrayFromFn bnds pointAt
+topoHeights area topo = arrayFromFn bnds pointAt
     where
-      sect = head sects -- TODO
       bnds = ((0, 0), (sampsLat - 1, sampsLong - 1))
       (sampsLat, sampsLong) = (latSec `quot` latSep, longSec `quot` longSep)
       (latSec, longSec) = areaSize area
-      (latSep, longSep) = sectSep sect
+      (latSep, longSep) = topoSep topo
       (south, west) = latLongToSecs (areaSW area)
       refPoint = areaSW area -- TODO use centre
       (mPerLatSec, mPerLongSec) = metresPerSecAt (latitude refPoint)
@@ -65,7 +75,7 @@ topoHeights area (Topo sects) = arrayFromFn bnds pointAt
           where
             dblX = fromIntegral x * mPerLongSamp
             dblY = fromIntegral y * mPerLatSamp
-            dblZ = fromIntegral (heightAt ll sect)
+            dblZ = fromIntegral (heightAt ll topo)
             ll = fromMaybe (error "lat/long out of range")
                  (latLongFromSecs (south + y * latSep, west + x * longSep))
 

@@ -4,6 +4,7 @@ module Area ( Area
             , areaFromCentreAndSize
             , areaFromSouthwestAndSize
             , areaIntersect
+            , areaContains
             , Arcsec
             , ArcsecSize
             )
