@@ -4,6 +4,7 @@ import Area
 import LatLong
 import Topo
 
+import Control.Applicative
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe)
 
@@ -12,7 +13,7 @@ secsPerSamp = 3
 
 readAscs :: Area -> [String] -> IO Topo
 readAscs area fileNames =
-  fmap mkTopo $ mapM (parseFile area) fileNames
+  mkTopo <$> mapM (parseFile area) fileNames
 
 parseFile :: Area -> String -> IO Sect
 parseFile area fileName = do
