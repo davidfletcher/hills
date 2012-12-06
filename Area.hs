@@ -5,6 +5,7 @@ module Area ( Area
             , areaFromSouthwestAndSize
             , areaIntersect
             , areaContains
+            , expandToGrid
             , Arcsec
             , ArcsecSize
             )
@@ -73,3 +74,18 @@ areaContains a pos = lat >= s && lat < n && long >= w && long < e
     where (lat, long) = latLongToSecs pos
           (s, w) = latLongToSecs (areaSW a)
           (n, e) = latLongToSecs (areaNE a)
+
+expandToGrid :: ArcsecSize -> Area -> Area
+expandToGrid (latSep, longSep) area = fromSWAndNE sw' ne'
+    where s' = toMultipleBelow latSep s
+          n' = toMultipleAbove latSep n
+          w' = toMultipleBelow longSep w
+          e' = toMultipleAbove longSep e
+          sw' = fromMaybe (error "expandToGrid went out of range") -- TODO
+                $ latLongFromSecs (s', w')
+          ne' = fromMaybe (error "expandToGrid went out of range") -- TODO
+                $ latLongFromSecs (n', e')
+          (s, w) = latLongToSecs (areaSW area)
+          (n, e) = latLongToSecs (areaNE area)
+          toMultipleBelow m x = (x `div` m) * m
+          toMultipleAbove m x = ((x + m - 1) `div` m) * m

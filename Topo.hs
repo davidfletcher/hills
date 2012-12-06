@@ -59,8 +59,14 @@ mkSect area (latSep, longSep) vals = Sect area (latSep, longSep) arr
 type MetresF = Double
 type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 
-topoHeights :: Area -> Topo -> Heights
-topoHeights area topo = arrayFromFn bnds pointAt
+-- TODO check have area available
+topoHeights :: Area -> Topo -> Either [Area] (Area, Heights)
+topoHeights reqArea topo = Right (area, topoHeights' area topo)
+    where area = expandToGrid (topoSep topo) reqArea
+
+-- always called with areas on the grid
+topoHeights' :: Area -> Topo -> Heights
+topoHeights' area topo = arrayFromFn bnds pointAt
     where
       bnds = ((0, 0), (sampsLat - 1, sampsLong - 1))
       (sampsLat, sampsLong) = (latSec `quot` latSep, longSec `quot` longSep)

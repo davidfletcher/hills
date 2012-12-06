@@ -11,6 +11,7 @@ import Data.Maybe
 import Data.Monoid
 import System.Console.GetOpt
 import System.Environment
+import System.IO
 
 main :: IO ()
 main = do
@@ -31,19 +32,23 @@ parseArgs argv = do
 
 run :: Opts -> IO ()
 run opts = do
-  let files = optInFiles opts -- TODO
+  let files = optInFiles opts
   let centre = optCentre opts
   let size = optSize opts
   let area = fromJust $ Area.areaFromCentreAndSize centre size
   topo <- Parse.readAscs area files
-  let stl = makeStl opts area topo
-  writeFile "out.stl" stl
+  case Topo.topoHeights area topo of
+      Left badAreas -> do
+          hPutStrLn stderr "don't have data for areas"
+          mapM_ (hPutStrLn stderr . show) badAreas -- TODO not show
+      Right (usedArea, samps) -> do
+          putStrLn ("generating for area: " ++ show usedArea) -- TODO not show
+          writeFile "out.stl" (makeStl opts samps)
 
-makeStl :: Opts -> Area.Area -> Topo.Topo -> String
-makeStl opts area topo = Stl.toString "topo" stl
-  where hs = Topo.topoHeights area topo
-        baseAlt = optBaseAlt opts
-        stl = Model.model baseAlt hs
+makeStl :: Opts -> Topo.Heights -> String
+makeStl opts samps = Stl.toString "topo" stl
+  where baseAlt = optBaseAlt opts
+        stl = Model.model baseAlt samps
 
 data Opts = Opts { optCentre :: LatLong
                  , optSize :: (Int, Int)

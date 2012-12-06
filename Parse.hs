@@ -13,7 +13,8 @@ secsPerSamp = 3
 
 readAscs :: Area -> [String] -> IO Topo
 readAscs area fileNames =
-  mkTopo <$> mapM (parseFile area) fileNames
+  mkTopo <$> mapM (parseFile areaToGet) fileNames
+      where areaToGet = expandToGrid (secsPerSamp, secsPerSamp) area
 
 parseFile :: Area -> String -> IO Sect
 parseFile area fileName = do
