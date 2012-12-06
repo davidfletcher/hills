@@ -10,6 +10,7 @@ where
 import Area
 import LatLong
 
+import Control.Monad
 import Data.Array.Unboxed
 import Data.Maybe (fromMaybe)
 
@@ -27,7 +28,7 @@ type MetresI = Int
 heightAt :: LatLong -> Topo -> MetresI
 heightAt pos (Topo sects) =
     case sectsContaining of
-      [] -> error "heightAt: no section containing position"
+      [] -> error ("heightAt: no section containing position " ++ show pos)
       (s:_) -> sectHeightAt pos s
     where sectsContaining = filter (flip areaContains pos . sectArea) sects
 
@@ -59,10 +60,14 @@ mkSect area (latSep, longSep) vals = Sect area (latSep, longSep) arr
 type MetresF = Double
 type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 
--- TODO check have area available
 topoHeights :: Area -> Topo -> Either [Area] (Area, Heights)
-topoHeights reqArea topo = Right (area, topoHeights' area topo)
+topoHeights reqArea topo@(Topo sects) =
+    case missingAreas of
+      [] -> Right (area, topoHeights' area topo)
+      xs -> Left xs
     where area = expandToGrid (topoSep topo) reqArea
+          missingAreas = foldM areaSubtract area sectAreas
+          sectAreas = map sectArea sects
 
 -- always called with areas on the grid
 topoHeights' :: Area -> Topo -> Heights
