@@ -58,10 +58,10 @@ validateOpts opts = do
   let files = poptInFiles opts
   case files of [] -> Left "no input files listed"
                 _ -> Right ()
-  return $ Opts { optCentre = c
-                , optSize = sz
-                , optInFiles = files
-                , optBaseAlt = baseAlt }
+  return Opts { optCentre = c
+              , optSize = sz
+              , optInFiles = files
+              , optBaseAlt = baseAlt }
 
 usageHeader :: String
 usageHeader  = "usage: terrain [options] -c LAT,LONG INFILES..."
