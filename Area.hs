@@ -7,6 +7,7 @@ module Area ( Area
             , areaSubtract
             , areaContains
             , expandToGrid
+            , areaShowUser
             , Arcsec
             , ArcsecSize
             )
@@ -22,6 +23,11 @@ type ArcsecSize = (Arcsec, Arcsec)
 data Area = Area { areaSW :: LatLong
                  , areaSize :: ArcsecSize }
             deriving Show
+
+areaShowUser :: Area -> String
+areaShowUser a = latLongShowUser (areaSW a)
+                 ++ " to "
+                 ++ latLongShowUser (areaNE a)
 
 -- TODO check areas at creation to get rid of the error here?
 areaNE :: Area -> LatLong

@@ -39,10 +39,10 @@ run opts = do
   topo <- Parse.readAscs area files
   case Topo.topoHeights area topo of
       Left badAreas -> do
-          hPutStrLn stderr "don't have data for areas"
-          mapM_ (hPutStrLn stderr . show) badAreas -- TODO not show
+          hPutStrLn stderr "error: no data available for area(s)"
+          mapM_ (hPutStrLn stderr . ("  "++) . Area.areaShowUser) badAreas
       Right (usedArea, samps) -> do
-          putStrLn ("generating for area: " ++ show usedArea) -- TODO not show
+          putStrLn ("generating for area: " ++ Area.areaShowUser usedArea)
           writeFile "out.stl" (makeStl opts samps)
 
 makeStl :: Opts -> Topo.Heights -> String

@@ -13,6 +13,9 @@ module LatLong ( LatLong
                , latLongFromDegMinSec
                , latLongFromDoubleDegs
                , metresPerSecAt
+               , latShowUser
+               , longShowUser
+               , latLongShowUser
                )
 where
 
@@ -36,6 +39,14 @@ instance Show Lat where
             where (ns, latd, latm, lats) = latToDegMinSec lat
 
 data NorthSouth = North | South deriving (Eq, Show)
+
+latShowUser :: Lat -> String
+latShowUser lat = showUserDMS d m s ++ case ns of North -> "N"
+                                                  South -> "S"
+    where (ns, d, m, s) = latToDegMinSec lat
+
+showUserDMS :: Int -> Int -> Int -> String
+showUserDMS d m s = concat [ show d, "-", show m, "-", show s ]
 
 mkLat :: (NorthSouth, Int, Int, Int) -> Lat
 mkLat (ns, d, m, s) =
@@ -70,6 +81,11 @@ instance Show Long where
 
 data EastWest = East | West deriving (Eq, Show)
 
+longShowUser :: Long -> String
+longShowUser long = showUserDMS d m s ++ case ew of East -> "E"
+                                                    West -> "W"
+    where (ew, d, m, s) = longToDegMinSec long
+
 mkLong :: (EastWest, Int, Int, Int) -> Long
 mkLong (ew, d, m, s) = longFromSecs v
     where
@@ -95,6 +111,10 @@ longToDegMinSec (Long s) = ( if s < 0 then West else East,
 
 data LatLong = LatLong { latitude :: Lat, longitude :: Long }
                deriving (Eq, Ord, Show)
+
+latLongShowUser :: LatLong -> String
+latLongShowUser (LatLong lat long) =
+    latShowUser lat ++ " " ++ longShowUser long
 
 latLongFromSecs :: (Int, Int) -> Maybe LatLong
 latLongFromSecs (lats, longs) = do
