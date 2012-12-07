@@ -2,6 +2,8 @@
 *.o
 terrain
 srtm_*.asc
+srtm_*.zip
 *.stl
 *.pgm
 *.gcode
+notes.txt
