@@ -1,6 +1,7 @@
 module Area ( Area
             , areaSize
             , areaSW
+            , areaNE
             , areaFromCentreAndSize
             , areaFromSouthwestAndSize
             , areaIntersect

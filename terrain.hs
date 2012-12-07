@@ -1,6 +1,7 @@
 module Main where
 
 import qualified Area
+import qualified CGIAR
 import LatLong
 import qualified Parse
 import qualified Stl
@@ -32,11 +33,14 @@ parseArgs argv = do
 
 run :: Opts -> IO ()
 run opts = do
-  let files = optInFiles opts
   let centre = optCentre opts
   let size = optSize opts
   let area = fromMaybe (error "bad area") -- TODO
              $ Area.areaFromCentreAndSize centre size
+  let listedFiles = optInFiles opts
+  let files = case listedFiles of [] -> CGIAR.filesForArea area
+                                  fs -> fs
+ -- TODO report if no files
   topo <- Parse.readAscs area files
   case Topo.topoHeights area topo of
       Left badAreas -> do
@@ -62,8 +66,6 @@ validateOpts opts = do
   sz <- poptSize opts
   baseAlt <- poptBaseAlt opts
   let files = poptInFiles opts
-  case files of [] -> Left "no input files listed"
-                _ -> Right ()
   return Opts { optCentre = c
               , optSize = sz
               , optInFiles = files
