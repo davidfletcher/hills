@@ -2,8 +2,10 @@ Google Maps (turn on lat/long tooltips in Maps Labs)
 
 http://srtm.csi.cgiar.org/
 
-    wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_38_03.zip
-    unzip srtm_38_03.zip
+    wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_44_13.zip
+OR  wget ftp://xftp.jrc.it/pub/srtmV4/arcasci/srtm_44_13.zip
+
+    unzip srtm_44_13.zip
 
 Mont Blanc
 
