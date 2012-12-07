@@ -35,7 +35,8 @@ run opts = do
   let files = optInFiles opts
   let centre = optCentre opts
   let size = optSize opts
-  let area = fromJust $ Area.areaFromCentreAndSize centre size
+  let area = fromMaybe (error "bad area") -- TODO
+             $ Area.areaFromCentreAndSize centre size
   topo <- Parse.readAscs area files
   case Topo.topoHeights area topo of
       Left badAreas -> do
