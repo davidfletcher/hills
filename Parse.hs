@@ -6,20 +6,29 @@ import Topo
 
 import Control.Applicative
 import qualified Data.ByteString.Lazy.Char8 as BC
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, catMaybes)
+import System.Directory (doesFileExist)
+import System.IO
 
 secsPerSamp :: Int
 secsPerSamp = 3
 
 readAscs :: Area -> [String] -> IO Topo
 readAscs area fileNames =
-  mkTopo <$> mapM (parseFile areaToGet) fileNames
+  mkTopo . catMaybes <$> mapM (parseFile areaToGet) fileNames
       where areaToGet = expandToGrid (secsPerSamp, secsPerSamp) area
 
-parseFile :: Area -> String -> IO Sect
+-- returns Nothing if the file doesn't exist
+parseFile :: Area -> String -> IO (Maybe Sect)
 parseFile area fileName = do
-  contents <- BC.readFile fileName
-  return $ parseContents area contents
+  exists <- doesFileExist fileName
+  if exists
+  then do
+    contents <- BC.readFile fileName
+    return . Just $ parseContents area contents
+  else do
+    hPutStrLn stderr (fileName ++ " does not exist")
+    return Nothing
 
 -- Returns an 0x0 section if the file had nothing from the desired area.
 parseContents :: Area -> BC.ByteString -> Sect

@@ -20,7 +20,7 @@ mkTopo :: [Sect] -> Topo
 mkTopo = Topo
 
 topoSep :: Topo -> ArcsecSize
-topoSep (Topo []) = error "topoSep: no sections"
+topoSep (Topo []) = (1, 1) -- hack, to fail nicely when there's no input data
 topoSep (Topo (x:_)) = sectSep x
 
 type MetresI = Int

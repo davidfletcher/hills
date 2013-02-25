@@ -25,7 +25,7 @@ run opts =
 
         case Topo.topoHeights area topo of
           Left badAreas -> do
-              -- TODO this never happens because readAscs fails above
+              -- should only happen if we didn't have the required input files
               hPutStrLn stderr "error: no data available for area(s)"
               mapM_ (hPutStrLn stderr . ("  "++) . Area.areaShowUser) badAreas
 
