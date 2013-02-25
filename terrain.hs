@@ -26,16 +26,20 @@ run opts = do
              $ Area.areaFromCentreAndSize centre size
   let listedFiles = optInFiles opts
   let files = case listedFiles of [] -> CGIAR.filesForArea area
-                                  fs -> fs
- -- TODO report if no files
-  topo <- Parse.readAscs area files
-  case Topo.topoHeights area topo of
-      Left badAreas -> do
-          hPutStrLn stderr "error: no data available for area(s)"
-          mapM_ (hPutStrLn stderr . ("  "++) . Area.areaShowUser) badAreas
-      Right (usedArea, samps) -> do
-          putStrLn ("generating for area: " ++ Area.areaShowUser usedArea)
-          writeFile "out.stl" (makeStl opts samps)
+                                  fs -> Just fs
+
+  case files of
+    Nothing -> print "area not covered by CGIAR data"
+    Just [] -> error "filesForArea went wrong"
+    Just fs -> do
+        topo <- Parse.readAscs area fs
+        case Topo.topoHeights area topo of
+          Left badAreas -> do
+               hPutStrLn stderr "error: no data available for area(s)"
+               mapM_ (hPutStrLn stderr . ("  "++) . Area.areaShowUser) badAreas
+          Right (usedArea, samps) -> do
+               putStrLn ("generating for area: " ++ Area.areaShowUser usedArea)
+               writeFile "out.stl" (makeStl opts samps)
 
 makeStl :: Opts -> Topo.Heights -> String
 makeStl opts samps = Stl.toString "topo" stl

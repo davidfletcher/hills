@@ -5,14 +5,13 @@ import LatLong
 
 import Data.Maybe
 
-filesForArea :: Area -> [FilePath]
-filesForArea area = map nameForNums nums
-  where nums = fromMaybe [] (numsForArea area)
+filesForArea :: Area -> Maybe [FilePath]
+filesForArea area = fmap (map nameForNums) (numsForArea area)
 
 numsForArea :: Area -> Maybe [(Int, Int)]
 numsForArea area = do
-  (sNum, eNum) <- boxNums (areaSW area)
-  (nNum, wNum) <- boxNums (areaNE area)
+  (sNum, wNum) <- boxNums (areaSW area)
+  (nNum, eNum) <- boxNums (areaNE area)
   return [(y, x) | y <- [sNum..nNum], x <- [wNum..eNum]]
 
 boxNums :: LatLong -> Maybe (Int, Int)
