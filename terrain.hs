@@ -14,32 +14,43 @@ import Options.Applicative
 import System.IO
 
 main :: IO ()
-main = do
-  conf <- execParser optInfo
-  run conf
+main = execParser optInfo >>= run
 
 run :: Opts -> IO ()
-run opts = do
-  let centre = optCentre opts
-  let size = optSize opts
-  let area = fromMaybe (error "bad area") -- TODO
-             $ Area.areaFromCentreAndSize centre size
-  let listedFiles = optInFiles opts
-  let files = case listedFiles of [] -> CGIAR.filesForArea area
-                                  fs -> Just fs
-
-  case files of
-    Nothing -> print "area not covered by CGIAR data"
-    Just [] -> error "filesForArea went wrong"
-    Just fs -> do
+run opts =
+  case getAreaAndFiles opts of
+    Left err -> hPutStrLn stderr err
+    Right (area, fs) -> do
         topo <- Parse.readAscs area fs
+
         case Topo.topoHeights area topo of
           Left badAreas -> do
-               hPutStrLn stderr "error: no data available for area(s)"
-               mapM_ (hPutStrLn stderr . ("  "++) . Area.areaShowUser) badAreas
+              -- TODO this never happens because readAscs fails above
+              hPutStrLn stderr "error: no data available for area(s)"
+              mapM_ (hPutStrLn stderr . ("  "++) . Area.areaShowUser) badAreas
+
           Right (usedArea, samps) -> do
-               putStrLn ("generating for area: " ++ Area.areaShowUser usedArea)
-               writeFile "out.stl" (makeStl opts samps)
+              putStrLn ("generating for area: " ++ Area.areaShowUser usedArea)
+              writeFile "out.stl" (makeStl opts samps)
+
+getAreaAndFiles :: Opts -> Either String (Area.Area, [FilePath])
+getAreaAndFiles opts = do
+  area <- getArea (optCentre opts) (optSize opts)
+  files <- getFiles area
+  return (area, files)
+
+getFiles :: Area.Area -> Either String [FilePath]
+getFiles area = do
+  case CGIAR.filesForArea area of
+    Nothing -> Left "area not covered by CGIAR data"
+    Just [] -> error "filesForArea went wrong"
+    Just fs -> Right fs
+
+getArea :: LatLong -> (Int, Int) -> Either String Area.Area
+getArea centre size =
+    case Area.areaFromCentreAndSize centre size of
+      Nothing -> Left "bad area"
+      Just a -> Right a
 
 makeStl :: Opts -> Topo.Heights -> String
 makeStl opts samps = Stl.toString "topo" stl
@@ -50,7 +61,7 @@ data Opts = Opts
     { optCentre :: LatLong
     , optSize :: (Int, Int)
     , optBaseAlt :: Double
-    , optInFiles :: [String]
+    , optInDir :: Maybe FilePath
     } deriving Show
 
 optInfo :: ParserInfo Opts
@@ -75,7 +86,12 @@ optParser =
                  <> value ((-100) :: Double)
                  <> metavar "METERS"
                  <> help "base altitude" )
-    <*> arguments Just ( metavar "INPUT FILES" )
+    <*> option ( short 'i'
+                 <> long "input-dir"
+                 <> reader (Right . Just)
+                 <> value Nothing
+                 <> metavar "DIR"
+                 <> help "directory with input files" )
 
 parseLatLongOpt :: String -> Either ParseError LatLong
 parseLatLongOpt s = case parseLatLong s of
