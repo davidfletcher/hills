@@ -62,6 +62,7 @@ optParser =
                      <> help "center point" )
     <*> option ( short 's'
                  <> long "size"
+                 <> reader parseSizeOpt
                  <> value (300, 600) -- TODO might break with non-multiples just now
                  <> metavar "LATSAMPSxLONGSAMPS"
                  <> help "size in samples" )
@@ -77,10 +78,10 @@ parseLatLongOpt s = case parseLatLong s of
                       Nothing -> Left $ ErrorMsg ("bad lat/long '" ++ s ++ "'")
                       Just x -> Right x
 
-parseSizeOpt :: String -> Either String (Int, Int)
+parseSizeOpt :: String -> Either ParseError (Int, Int)
 parseSizeOpt s = case (reads latPart, reads longPart) of
                    ( [(lat, [])], [(long, [])] ) -> Right (lat, long)
-                   _ -> Left $ "bad size '" ++ s ++ "'"
+                   _ -> Left . ErrorMsg $ "bad size '" ++ s ++ "'"
     where
       (latPart, rest) = break (== 'x') s
       longPart = case rest of [] -> []
