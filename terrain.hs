@@ -42,14 +42,12 @@ getAreaAndFiles opts = do
 getFiles :: Area.Area -> Either String [FilePath]
 getFiles = maybeToErr "area not covered by CGIAR data" . CGIAR.filesForArea
 
-maybeToErr :: a -> Maybe b -> Either a b
-maybeToErr err = maybe (Left err) Right
-
 getArea :: LatLong -> (Int, Int) -> Either String Area.Area
 getArea centre size =
-    case Area.areaFromCentreAndSize centre size of
-      Nothing -> Left "bad area"
-      Just a -> Right a
+    maybeToErr "bad area" $ Area.areaFromCentreAndSize centre size
+
+maybeToErr :: a -> Maybe b -> Either a b
+maybeToErr err = maybe (Left err) Right
 
 makeStl :: Opts -> Topo.Heights -> String
 makeStl opts samps = Stl.toString "topo" stl
