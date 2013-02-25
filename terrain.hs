@@ -63,7 +63,7 @@ optParser =
     <*> option ( short 's'
                  <> long "size"
                  <> reader parseSizeOpt
-                 <> value (300, 600) -- TODO might break with non-multiples just now
+                 <> value (300, 600)
                  <> metavar "LATSAMPSxLONGSAMPS"
                  <> help "size in samples" )
     <*> option ( short 'b'
