@@ -31,7 +31,7 @@ run opts =
 
           Right (usedArea, samps) -> do
               putStrLn ("generating for area: " ++ Area.areaShowUser usedArea)
-              writeFile "out.stl" (makeStl opts samps)
+              writeFile (optOutFile opts) (makeStl opts samps)
 
 getAreaAndFiles :: Opts -> Either String (Area.Area, [FilePath])
 getAreaAndFiles opts = do
@@ -62,6 +62,7 @@ data Opts = Opts
     , optSize :: (Int, Int)
     , optBaseAlt :: Double
     , optInDir :: Maybe FilePath
+    , optOutFile :: FilePath
     } deriving Show
 
 optInfo :: ParserInfo Opts
@@ -92,6 +93,7 @@ optParser =
                  <> value Nothing
                  <> metavar "DIR"
                  <> help "directory with input files" )
+    <*> argument Just ( metavar "OUTFILE" )
 
 parseLatLongOpt :: String -> Either ParseError LatLong
 parseLatLongOpt s = case parseLatLong s of
