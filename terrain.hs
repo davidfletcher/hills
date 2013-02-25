@@ -40,11 +40,10 @@ getAreaAndFiles opts = do
   return (area, files)
 
 getFiles :: Area.Area -> Either String [FilePath]
-getFiles area = do
-  case CGIAR.filesForArea area of
-    Nothing -> Left "area not covered by CGIAR data"
-    Just [] -> error "filesForArea went wrong"
-    Just fs -> Right fs
+getFiles = maybeToErr "area not covered by CGIAR data" . CGIAR.filesForArea
+
+maybeToErr :: a -> Maybe b -> Either a b
+maybeToErr err = maybe (Left err) Right
 
 getArea :: LatLong -> (Int, Int) -> Either String Area.Area
 getArea centre size =
