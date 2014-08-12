@@ -3,8 +3,6 @@ module CGIAR (filesForArea) where
 import Area
 import LatLong
 
-import Data.Maybe
-
 filesForArea :: Area -> Maybe [FilePath]
 filesForArea area = fmap (map nameForNums) (numsForArea area)
 
