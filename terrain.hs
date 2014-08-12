@@ -8,7 +8,6 @@ import qualified Stl
 import qualified Model
 import qualified Topo
 
-import Data.Maybe
 import Data.Monoid
 import Options.Applicative
 import System.IO
@@ -70,12 +69,12 @@ optParser =
     Opts
     <$> nullOption ( short 'c'
                      <> long "center"
-                     <> reader parseLatLongOpt
+                     <> eitherReader parseLatLongOpt
                      <> metavar "LAT,LONG"
                      <> help "center point" )
     <*> option ( short 's'
                  <> long "size"
-                 <> reader parseSizeOpt
+                 <> eitherReader parseSizeOpt
                  <> value (300, 600)
                  <> metavar "LATSAMPSxLONGSAMPS"
                  <> help "size in samples" )
@@ -86,21 +85,21 @@ optParser =
                  <> help "base altitude" )
     <*> option ( short 'i'
                  <> long "input-dir"
-                 <> reader (Right . Just)
+                 <> eitherReader (Right . Just)
                  <> value Nothing
                  <> metavar "DIR"
                  <> help "directory with input files" )
     <*> argument Just ( metavar "OUTFILE" )
 
-parseLatLongOpt :: String -> Either ParseError LatLong
+parseLatLongOpt :: String -> Either String LatLong
 parseLatLongOpt s = case parseLatLong s of
-                      Nothing -> Left $ ErrorMsg ("bad lat/long '" ++ s ++ "'")
+                      Nothing -> Left ("bad lat/long '" ++ s ++ "'")
                       Just x -> Right x
 
-parseSizeOpt :: String -> Either ParseError (Int, Int)
+parseSizeOpt :: String -> Either String (Int, Int)
 parseSizeOpt s = case (reads latPart, reads longPart) of
-                   ( [(lat, [])], [(long, [])] ) -> Right (lat, long)
-                   _ -> Left . ErrorMsg $ "bad size '" ++ s ++ "'"
+                   ( [(lat, [])], [(lon, [])] ) -> Right (lat, lon)
+                   _ -> Left ("bad size '" ++ s ++ "'")
     where
       (latPart, rest) = break (== 'x') s
       longPart = case rest of [] -> []
