@@ -8,6 +8,8 @@ import qualified Stl
 import qualified Model
 import qualified Topo
 
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Except
 import Data.Monoid
 import Options.Applicative
 import System.IO
@@ -16,37 +18,44 @@ main :: IO ()
 main = execParser optInfo >>= run
 
 run :: Opts -> IO ()
-run opts =
-  case getAreaAndFiles opts of
-    Left err -> hPutStrLn stderr err
-    Right (area, fs) -> do
-        topo <- Parse.readAscs area fs
+run opts = either (hPutStrLn stderr) return =<< runExceptT (run' opts)
 
-        case Topo.topoHeights area topo of
-          Left badAreas -> do
-              -- should only happen if we didn't have the required input files
-              hPutStrLn stderr "error: no data available for area(s)"
-              mapM_ (hPutStrLn stderr . ("  "++) . Area.areaShowUser) badAreas
+type Err a = Except String a
+type ErrT a = ExceptT String a
 
-          Right (usedArea, samps) -> do
-              putStrLn ("generating for area: " ++ Area.areaShowUser usedArea)
-              writeFile (optOutFile opts) (makeStl opts samps)
+hoist :: Except String a -> ExceptT String IO a
+hoist = ExceptT . return . runExcept
 
-getAreaAndFiles :: Opts -> Either String (Area.Area, [FilePath])
+run' :: Opts -> ErrT IO ()
+run' opts = do
+  (area, fs) <- hoist (getAreaAndFiles opts)
+  topo <- liftIO (Parse.readAscs area fs)
+  (usedArea, samps) <- hoist (getTopo area topo)
+  liftIO (putStrLn ("generating for area: " ++ Area.areaShowUser usedArea))
+  liftIO (writeFile (optOutFile opts) (makeStl opts samps))
+
+getTopo :: Area.Area -> Topo.Topo -> Err (Area.Area, Topo.Heights)
+getTopo area topo = withExcept showBad (Topo.topoHeights area topo)
+    where
+      showBad badAreas = unlines (msg : map showOne badAreas)
+      showOne = ("  "++) . Area.areaShowUser
+      msg = "error: no data available for area(s)"
+
+getAreaAndFiles :: Opts -> Err (Area.Area, [FilePath])
 getAreaAndFiles opts = do
   area <- getArea (optCentre opts) (optSize opts)
   files <- getFiles area
   return (area, files)
 
-getFiles :: Area.Area -> Either String [FilePath]
-getFiles = maybeToErr "area not covered by CGIAR data" . CGIAR.filesForArea
+getFiles :: Area.Area -> Err [FilePath]
+getFiles = maybeToExcept "area not covered by CGIAR data" . CGIAR.filesForArea
 
-getArea :: LatLong -> (Int, Int) -> Either String Area.Area
+getArea :: LatLong -> (Int, Int) -> Err Area.Area
 getArea centre size =
-    maybeToErr "bad area" $ Area.areaFromCentreAndSize centre size
+    maybeToExcept "bad area" $ Area.areaFromCentreAndSize centre size
 
-maybeToErr :: a -> Maybe b -> Either a b
-maybeToErr err = maybe (Left err) Right
+maybeToExcept :: a -> Maybe b -> Except a b
+maybeToExcept err = maybe (throwE err) return
 
 makeStl :: Opts -> Topo.Heights -> String
 makeStl opts samps = Stl.toString "topo" stl

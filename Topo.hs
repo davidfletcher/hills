@@ -11,6 +11,7 @@ import Area
 import LatLong
 
 import Control.Monad
+import Control.Monad.Trans.Except
 import Data.Array.Unboxed
 import Data.Maybe (fromMaybe)
 
@@ -60,11 +61,11 @@ mkSect area (latSep, longSep) vals = Sect area (latSep, longSep) arr
 type MetresF = Double
 type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 
-topoHeights :: Area -> Topo -> Either [Area] (Area, Heights)
+topoHeights :: Area -> Topo -> Except [Area] (Area, Heights)
 topoHeights reqArea topo@(Topo sects) =
     case missingAreas of
-      [] -> Right (area, topoHeights' area topo)
-      xs -> Left xs
+      [] -> return (area, topoHeights' area topo)
+      xs -> throwE xs
     where area = expandToGrid (topoSep topo) reqArea
           missingAreas = foldM areaSubtract area sectAreas
           sectAreas = map sectArea sects
