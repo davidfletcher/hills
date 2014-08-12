@@ -23,14 +23,14 @@ run opts = either (hPutStrLn stderr) return =<< runExceptT (run' opts)
 type Err a = Except String a
 type ErrT a = ExceptT String a
 
-hoist :: Except String a -> ExceptT String IO a
-hoist = ExceptT . return . runExcept
+hoistExcept :: Except String a -> ExceptT String IO a
+hoistExcept = ExceptT . return . runExcept
 
 run' :: Opts -> ErrT IO ()
 run' opts = do
-  (area, fs) <- hoist (getAreaAndFiles opts)
+  (area, fs) <- hoistExcept (getAreaAndFiles opts)
   topo <- liftIO (Parse.readAscs area fs)
-  (usedArea, samps) <- hoist (getTopo area topo)
+  (usedArea, samps) <- hoistExcept (getTopo area topo)
   liftIO (putStrLn ("generating for area: " ++ Area.areaShowUser usedArea))
   liftIO (writeFile (optOutFile opts) (makeStl opts samps))
 
