@@ -1,6 +1,5 @@
-*.hi
-*.o
-terrain
+/dist
+/Setup.hs
 srtm_*.asc
 srtm_*.zip
 *.stl
