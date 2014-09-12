@@ -5,7 +5,8 @@ module LatLong ( LatLong
                , Long
                , NorthSouth(..)
                , EastWest(..)
-               , parseLatLong
+               , LatLongD
+               , LatLongSize
                , latToDegMinSec
                , longToDegMinSec
                , latLongFromSecs
@@ -16,6 +17,25 @@ module LatLong ( LatLong
                , latShowUser
                , longShowUser
                , latLongShowUser
+               , zeroLatLongD
+               , latLongDFromSecs
+               , latLongDToSecs
+               , latD
+               , longD
+               , addD
+               , scaleD
+               , zeroSize
+               , sizeFromCorners
+               , latSize
+               , longSize
+               , latLongSizeToSecs
+               , latLongSizeFromSecs
+               , addSize
+               , scaleSize
+
+               , parseLatLong
+               , parseLatLongD
+               , parseSize
                )
 where
 
@@ -23,7 +43,6 @@ import Control.Monad
 import Data.Char
 import Data.Maybe
 import qualified Data.Text as T
-
 
 -- Latitude
 
@@ -155,6 +174,73 @@ degToArcsec d = round (d * 3600)
 secToRad :: Int -> Double
 secToRad s = deg * ( pi / 180 )
     where deg = fromIntegral s / 3600
+
+-- Deltas
+
+data LatLongD = LatLongD { latD :: Int, longD :: Int } deriving Show
+
+latLongDFromSecs :: (Int, Int) -> LatLongD
+latLongDFromSecs (a, o) = LatLongD a o
+
+zeroLatLongD :: LatLongD
+zeroLatLongD = LatLongD 0 0
+
+latLongDToSecs :: LatLongD -> (Int, Int)
+latLongDToSecs (LatLongD a o) = (a, o)
+
+addD :: LatLong -> LatLongD -> Maybe LatLong
+addD ll (LatLongD latd longd) = latLongFromSecs (lat + latd, long + longd)
+  where (lat, long) = latLongToSecs ll
+
+scaleD :: (Int, Int) -> LatLongD -> LatLongD
+scaleD (slat, slong) (LatLongD latd longd) = LatLongD (slat*latd) (slong*longd)
+
+parseLatLongD :: String -> Maybe LatLongD
+parseLatLongD s =
+  case (reads latPart, reads longPart) of
+    ( [(lat, [])], [(lon, [])] ) -> Just (latLongDFromSecs (lat, lon))
+    _ -> Nothing
+  where
+    (latPart, rest) = break (== ',') s
+    longPart = drop 1 rest
+
+-- Sizes
+
+data LatLongSize = LatLongSize { latSize :: Int, longSize :: Int }
+                 deriving Show
+
+zeroSize :: LatLongSize
+zeroSize = LatLongSize 0 0
+
+latLongSizeFromSecs :: (Int, Int) -> LatLongSize
+latLongSizeFromSecs (a, o) = LatLongSize a o
+
+-- TODO won't work across 180 line
+sizeFromCorners :: LatLong -> LatLong -> LatLongSize
+sizeFromCorners x y = LatLongSize (abs (laty - latx)) (abs (longy - longx))
+  where (latx, longx) = latLongToSecs x
+        (laty, longy) = latLongToSecs y
+
+addSize :: LatLong -> LatLongSize -> Maybe LatLong
+addSize ll (LatLongSize latsz longsz) = latLongFromSecs (lat + latsz, long + longsz)
+  where (lat, long) = latLongToSecs ll
+
+scaleSize :: (Int, Int) -> LatLongSize -> LatLongSize
+scaleSize (slat, slong) (LatLongSize lat long)
+  | slat < 0 || slong < 0 = error "scaleSize: negative scale"
+  | otherwise = LatLongSize (slat*lat) (slong*long)
+
+latLongSizeToSecs :: LatLongSize -> (Int, Int)
+latLongSizeToSecs (LatLongSize a o) = (a, o)
+
+parseSize :: String -> Maybe LatLongSize
+parseSize s =
+  case (reads latPart, reads longPart) of
+    ( [(lat, [])], [(lon, [])] ) -> Just (latLongSizeFromSecs (lat, lon))
+    _ -> Nothing
+  where
+    (latPart, rest) = break (== 'x') s
+    longPart = drop 1 rest
 
 -- Formulae are from
 -- http://en.wikipedia.org/wiki/Latitude#The_length_of_a_degree_of_latitude

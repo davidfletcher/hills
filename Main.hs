@@ -55,15 +55,12 @@ getAreaAndFiles opts = do
 getFiles :: Area.Area -> Err [FilePath]
 getFiles = maybeToExcept "area not covered by CGIAR data" . CGIAR.filesForArea
 
-getArea :: LatLong -> (Int, Int) -> Maybe (Int, Int) -> Err Area.Area
+getArea :: LatLong -> LatLongSize -> Maybe LatLongD -> Err Area.Area
 getArea centre size Nothing =
     maybeToExcept "bad area" (Area.areaFromCentreAndSize centre size)
-getArea centre size (Just (olat, olon)) =
-  Area.areaFromSouthwestAndSize <$> sw <*> pure size
-    where
-      sw = maybeToExcept "bad area" (latLongFromSecs swSecs)
-      (centreLat, centreLon) = latLongToSecs centre
-      swSecs = (centreLat + olat, centreLon + olon)
+getArea centre size (Just offset) =
+  maybeToExcept "bad area" (
+    Area.areaFromSouthwestAndSize <$> addD centre offset  <*> pure size)
 
 maybeToExcept :: a -> Maybe b -> Except a b
 maybeToExcept err = maybe (throwE err) return
@@ -75,8 +72,8 @@ makeStl opts samps = Stl.toBinary stl
 
 data Opts = Opts
     { optCentre :: LatLong
-    , optSize :: (Int, Int)
-    , optOffset :: Maybe (Int, Int)
+    , optSize :: LatLongSize
+    , optOffset :: Maybe LatLongD
     , optBaseAlt :: Double
     , optInDir :: Maybe FilePath
     , optOutFile :: FilePath
@@ -96,7 +93,7 @@ optParser =
     <*> option (eitherReader parseSizeOpt)
                ( short 's'
                  <> long "size"
-                 <> value (300, 600)
+                 <> value (latLongSizeFromSecs (300, 600))
                  <> metavar "ARCSECxARCSEC"
                  <> help "size in arcseconds" )
     <*> option (eitherReader parseOffsetOpt)
@@ -123,20 +120,12 @@ parseLatLongOpt s = case parseLatLong s of
                       Nothing -> Left ("bad lat/long '" ++ s ++ "'")
                       Just x -> Right x
 
-parseOffsetOpt :: String -> Either String (Maybe (Int, Int))
-parseOffsetOpt s = case (reads latPart, reads longPart) of
-                     ( [(lat, [])], [(lon, [])] ) -> Right (Just (lat, lon))
-                     _ -> Left ("bad offset '" ++ s ++ "'")
-    where
-      (latPart, rest) = break (== ',') s
-      longPart = case rest of [] -> []
-                              (_:xs) -> xs
+parseOffsetOpt :: String -> Either String (Maybe LatLongD)
+parseOffsetOpt s = case parseLatLongD s of
+                     Nothing -> Left ("bad offset '" ++ s ++ "'")
+                     Just x -> Right (Just x)
 
-parseSizeOpt :: String -> Either String (Int, Int)
-parseSizeOpt s = case (reads latPart, reads longPart) of
-                   ( [(lat, [])], [(lon, [])] ) -> Right (lat, lon)
-                   _ -> Left ("bad size '" ++ s ++ "'")
-    where
-      (latPart, rest) = break (== 'x') s
-      longPart = case rest of [] -> []
-                              (_:xs) -> xs
+parseSizeOpt :: String -> Either String LatLongSize
+parseSizeOpt s = case parseSize s of
+                   Nothing -> Left ("bad size '" ++ s ++ "'")
+                   Just x -> Right x

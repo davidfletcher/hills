@@ -13,10 +13,13 @@ import System.IO
 secsPerSamp :: Int
 secsPerSamp = 3
 
+sep :: LatLongSize
+sep = latLongSizeFromSecs (secsPerSamp, secsPerSamp)
+
 readAscs :: Area -> [String] -> IO Topo
 readAscs area fileNames =
   mkTopo . catMaybes <$> mapM (parseFile areaToGet) fileNames
-      where areaToGet = expandToGrid (secsPerSamp, secsPerSamp) area
+      where areaToGet = expandToGrid sep area
 
 -- returns Nothing if the file doesn't exist
 parseFile :: Area -> String -> IO (Maybe Sect)
@@ -33,15 +36,15 @@ parseFile area fileName = do
 -- Returns an 0x0 section if the file had nothing from the desired area.
 parseContents :: Area -> BC.ByteString -> Sect
 parseContents wantedArea s =
-    case areaIntersect wholeArea wantedArea of
-      Nothing -> mkSect emptyArea seps []
-          where emptyArea = areaFromSouthwestAndSize (areaSW wantedArea) (0, 0)
-      Just avail -> mkSect avail seps vals
-          where
-            region = fileRegion wholeArea avail
-            vals = parseLines region rest
-    where (wholeArea, rest) = parseHeader (BC.lines s)
-          seps = (secsPerSamp, secsPerSamp)
+  case areaIntersect wholeArea wantedArea of
+    Nothing -> mkSect emptyArea sep []
+      where
+        emptyArea = areaFromSouthwestAndSize (areaSW wantedArea) zeroSize
+    Just avail -> mkSect avail sep vals
+      where
+        region = fileRegion wholeArea avail
+        vals = parseLines region rest
+  where (wholeArea, rest) = parseHeader (BC.lines s)
 
 data FileRegion = FileRegion { regFirstLine :: Int
                              , regNumLines :: Int
@@ -57,10 +60,10 @@ fileRegion wholeArea wantedArea =
     , regNumLines = wantedLines
     , regFirstSamp = (wantedW - wholeW) `quot` secsPerSamp
     , regNumSamps = wantedSamps }
-    where (wantedLat, wantedLong) = areaSize wantedArea
+    where (wantedLat, wantedLong) = latLongSizeToSecs (areaSize wantedArea)
           (wantedLines, wantedSamps) = (wantedLat `quot` secsPerSamp,
                                         wantedLong `quot` secsPerSamp)
-          (wholeLat, _) = areaSize wholeArea
+          wholeLat = latSize (areaSize wholeArea)
           wholeLines = wholeLat `quot` secsPerSamp
           (wholeS, wholeW) = latLongToSecs (areaSW wholeArea)
           (wantedS, wantedW) = latLongToSecs (areaSW wantedArea)
@@ -88,7 +91,7 @@ parseHeader ls =
 
 headerArea :: Double -> Double -> Int -> Int -> Area
 headerArea latDeg longDeg rows cols =
-    areaFromSouthwestAndSize sw (rows * secsPerSamp, cols * secsPerSamp)
+    areaFromSouthwestAndSize sw (scaleSize (rows, cols) sep)
     where
       sw = fromMaybe (error "bad header area") -- TODO
            (latLongFromDoubleDegs secsPerSamp (latDeg, longDeg))
