@@ -40,12 +40,11 @@ data Sect = Sect { sectArea :: Area
 
 -- TODO check divisions are exact
 sectHeightAt :: LatLong -> Sect -> MetresI
-sectHeightAt pos sect = sectArray sect ! (y, x)
-    where (y, x) = (dLat `quot` latSep, dLong `quot` longSep)
-          (latSep, longSep) = latLongSizeToSecs (sectSep sect)
-          (dLat, dLong) = (posLat - swLat, posLong - swLong)
-          (posLat, posLong) = latLongToSecs pos
-          (swLat, swLong) = latLongToSecs (areaSW (sectArea sect))
+sectHeightAt pos sect = sectArray sect ! ix
+    where ix = d `latLongDQuotSize` sz
+          d = latLongDFromTo sw pos
+          sw = areaSW (sectArea sect)
+          sz = sectSep sect
 
 type Arr = UArray (Int, Int) MetresI
 
@@ -54,11 +53,9 @@ mkSect area sep vals = Sect area sep arr
     where
       arr = array bnds (zip ixsNorthtoSouth (concat vals))
       ixsNorthtoSouth = [(y, x) | y <- [maxy, maxy-1 .. 0], x <- [0..maxx]]
-      (latS, longS) = latLongSizeToSecs (areaSize area)
-      (latSamps, longSamps) = (latS `quot` latSep, longS `quot` longSep)
+      (latSamps, longSamps) = areaSize area `latLongSizeQuotSize` sep
       (maxy, maxx) = (latSamps - 1, longSamps - 1)
       bnds = ((0, 0), (maxy, maxx))
-      (latSep, longSep) = latLongSizeToSecs sep
 
 type MetresF = Double
 type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)

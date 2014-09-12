@@ -20,15 +20,19 @@ module LatLong ( LatLong
                , zeroLatLongD
                , latLongDFromSecs
                , latLongDToSecs
+               , latLongDFromTo
                , addD
+               , subD
                , scaleD
                , zeroSize
                , sizeFromCorners
                , latLongSizeToSecs
                , latLongSizeFromSecs
                , addSize
+               , subSize
                , scaleSize
-
+               , latLongDQuotSize
+               , latLongSizeQuotSize
                , parseLatLong
                , parseLatLongD
                , parseSize
@@ -188,6 +192,14 @@ addD :: LatLong -> LatLongD -> Maybe LatLong
 addD ll (LatLongD latd longd) = latLongFromSecs (lat + latd, long + longd)
   where (lat, long) = latLongToSecs ll
 
+subD :: LatLong -> LatLongD -> Maybe LatLong
+subD ll (LatLongD latd longd) = addD ll (LatLongD (negate latd) (negate longd))
+
+latLongDFromTo :: LatLong -> LatLong -> LatLongD
+latLongDFromTo x y = latLongDFromSecs (ylat - xlat, ylong - xlong)
+  where (xlat, xlong) = latLongToSecs x
+        (ylat, ylong) = latLongToSecs y
+
 scaleD :: (Int, Int) -> LatLongD -> LatLongD
 scaleD (slat, slong) (LatLongD latd longd) = LatLongD (slat*latd) (slong*longd)
 
@@ -219,10 +231,20 @@ sizeFromCorners x y = latLongSizeFromSecs (abs (laty - latx), abs (longy - longx
 addSize :: LatLong -> LatLongSize -> Maybe LatLong
 addSize ll (LatLongSize d) = addD ll d
 
+subSize :: LatLong -> LatLongSize -> Maybe LatLong
+subSize ll (LatLongSize d) = subD ll d
+
 scaleSize :: (Int, Int) -> LatLongSize -> LatLongSize
 scaleSize (slat, slong) (LatLongSize d)
   | slat < 0 || slong < 0 = error "scaleSize: negative scale"
   | otherwise = LatLongSize (scaleD (slat, slong) d)
+
+latLongDQuotSize :: LatLongD -> LatLongSize -> (Int, Int)
+latLongDQuotSize (LatLongD dlat dlong) (LatLongSize (LatLongD slat slong))
+  = (dlat `quot` slat, dlong `quot` slong)
+
+latLongSizeQuotSize :: LatLongSize -> LatLongSize -> (Int, Int)
+latLongSizeQuotSize (LatLongSize d) s = latLongDQuotSize d s
 
 latLongSizeToSecs :: LatLongSize -> (Int, Int)
 latLongSizeToSecs (LatLongSize d) = latLongDToSecs d

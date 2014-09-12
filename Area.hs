@@ -31,9 +31,9 @@ areaNE a = fromMaybe (error "areaNE: out of range") (areaSW a `addSize` areaSize
 
 areaFromCentreAndSize :: LatLong -> LatLongSize -> Maybe Area
 areaFromCentreAndSize cent size = do
-  sw <- addD cent (latLongDFromSecs ( centLat - halfLatSec, centLong - halfLongSec ))
+  sw <- cent `subSize` halfSize
   return Area { areaSW = sw, areaSize = size }
-    where (centLat, centLong) = latLongToSecs cent
+    where halfSize = latLongSizeFromSecs (halfLatSec, halfLongSec)
           halfLatSec = (latSize + 1) `quot` 2
           halfLongSec = (longSize + 1) `quot` 2
           (latSize, longSize) = latLongSizeToSecs size
