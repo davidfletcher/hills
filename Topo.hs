@@ -4,6 +4,7 @@ module Topo ( Topo
             , mkSect
             , topoHeights
             , Heights
+            , MetresF
             )
 where
 

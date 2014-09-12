@@ -59,7 +59,7 @@ maybeToExcept :: a -> Maybe b -> Except a b
 maybeToExcept err = maybe (throwE err) return
 
 makeStl :: Opts -> Topo.Heights -> L.ByteString
-makeStl opts samps = Stl.toByteString "topo" stl
+makeStl opts samps = Stl.toBinary stl
   where baseAlt = optBaseAlt opts
         stl = Model.model baseAlt samps
 
