@@ -62,25 +62,24 @@ mkSect area (latSep, longSep) vals = Sect area (latSep, longSep) arr
 type MetresF = Double
 type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 
-topoHeights :: Area -> Topo -> Except [Area] (Area, Heights)
-topoHeights reqArea topo@(Topo sects) =
+topoHeights :: LatLong -> Area -> Topo -> Except [Area] (Area, Heights)
+topoHeights refPoint reqArea topo@(Topo sects) =
     case missingAreas of
-      [] -> return (area, topoHeights' area topo)
+      [] -> return (area, topoHeights' refPoint area topo)
       xs -> throwE xs
     where area = expandToGrid (topoSep topo) reqArea
           missingAreas = foldM areaSubtract area sectAreas
           sectAreas = map sectArea sects
 
 -- always called with areas on the grid
-topoHeights' :: Area -> Topo -> Heights
-topoHeights' area topo = arrayFromFn bnds pointAt
+topoHeights' :: LatLong -> Area -> Topo -> Heights
+topoHeights' refPoint area topo = arrayFromFn bnds pointAt
     where
       bnds = ((0, 0), (sampsLat - 1, sampsLong - 1))
       (sampsLat, sampsLong) = (latSec `quot` latSep, longSec `quot` longSep)
       (latSec, longSec) = areaSize area
       (latSep, longSep) = topoSep topo
       (south, west) = latLongToSecs (areaSW area)
-      refPoint = areaSW area -- TODO use centre
       (mPerLatSec, mPerLongSec) = metresPerSecAt (latitude refPoint)
       (mPerLatSamp, mPerLongSamp) = ( mPerLatSec * fromIntegral latSep,
                                       mPerLongSec * fromIntegral longSep )
