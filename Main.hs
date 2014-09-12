@@ -76,25 +76,26 @@ optInfo = info (helper <*> optParser) fullDesc
 optParser :: Parser Opts
 optParser =
     Opts
-    <$> nullOption ( short 'c'
-                     <> long "center"
-                     <> eitherReader parseLatLongOpt
-                     <> metavar "LAT,LONG"
-                     <> help "center point" )
-    <*> option ( short 's'
+    <$> option (eitherReader parseLatLongOpt)
+               ( short 'c'
+                 <> long "center"
+                 <> metavar "LAT,LONG"
+                 <> help "center point" )
+    <*> option (eitherReader parseSizeOpt)
+               ( short 's'
                  <> long "size"
-                 <> eitherReader parseSizeOpt
                  <> value (300, 600)
                  <> metavar "LATSAMPSxLONGSAMPS"
                  <> help "size in samples" )
-    <*> option ( short 'b'
+    <*> option auto
+               ( short 'b'
                  <> long "base-altitude"
                  <> value ((-100) :: Double)
                  <> metavar "METERS"
                  <> help "base altitude" )
-    <*> option ( short 'i'
+    <*> option (eitherReader (Right . Just))
+               ( short 'i'
                  <> long "input-dir"
-                 <> eitherReader (Right . Just)
                  <> value Nothing
                  <> metavar "DIR"
                  <> help "directory with input files" )

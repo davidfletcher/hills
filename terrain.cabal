@@ -6,7 +6,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              David Fletcher
 maintainer:          david@bubblycloud.com
--- copyright:
+copyright:           (c) 2014 David Fletcher
 -- category:
 build-type:          Simple
 extra-source-files:  README
@@ -14,14 +14,12 @@ cabal-version:       >=1.10
 
 executable terrain
   main-is:             Main.hs
-  -- other-modules:
-  -- other-extensions:
   build-depends:       base >=4.7,
                        array >=0.5,
                        bytestring >=0.10,
                        directory >=1.2,
                        transformers >=0.4,
                        text >=1.1,
-                       optparse-applicative >= 0.9
-  -- hs-source-dirs:
+                       optparse-applicative >= 0.10
   default-language:    Haskell2010
+  ghc-options:         -Wall -O2
