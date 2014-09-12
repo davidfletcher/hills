@@ -2,6 +2,8 @@
 /Setup.hs
 /.cabal-sandbox
 /cabal.sandbox.config
+*.prof
+
 srtm_*.asc
 srtm_*.zip
 *.stl
