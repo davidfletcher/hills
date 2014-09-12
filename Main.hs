@@ -46,7 +46,10 @@ getAreaAndFiles :: Opts -> Err (Area.Area, [FilePath])
 getAreaAndFiles opts = do
   area <- getArea (optCentre opts) (optSize opts)
   files <- getFiles area
-  return (area, files)
+  return (area, map addDir files)
+  where
+    addDir f = case optInDir opts of Nothing -> f
+                                     Just dir -> dir ++ "/" ++ f
 
 getFiles :: Area.Area -> Err [FilePath]
 getFiles = maybeToExcept "area not covered by CGIAR data" . CGIAR.filesForArea
