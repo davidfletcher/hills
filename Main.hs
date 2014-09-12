@@ -89,8 +89,8 @@ optParser =
                ( short 's'
                  <> long "size"
                  <> value (300, 600)
-                 <> metavar "LATSAMPSxLONGSAMPS"
-                 <> help "size in samples" )
+                 <> metavar "ARCSECxARCSEC"
+                 <> help "size in arcseconds" )
     <*> option auto
                ( short 'b'
                  <> long "base-altitude"
