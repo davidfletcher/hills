@@ -17,24 +17,24 @@ module LatLong ( LatLong
                , latShowUser
                , longShowUser
                , latLongShowUser
-               , zeroLatLongD
-               , latLongDFromSecs
-               , latLongDToSecs
-               , latLongDFromTo
+               , zeroDelta
+               , deltaFromSecs
+               , deltaToSecs
+               , deltaFromTo
                , addD
                , subD
                , scaleD
                , zeroSize
                , sizeFromCorners
-               , latLongSizeToSecs
-               , latLongSizeFromSecs
+               , sizeToSecs
+               , sizeFromSecs
                , addSize
                , subSize
                , scaleSize
-               , latLongDQuotSize
-               , latLongSizeQuotSize
+               , deltaQuotSize
+               , sizeQuotSize
                , parseLatLong
-               , parseLatLongD
+               , parseDelta
                , parseSize
                )
 where
@@ -179,14 +179,14 @@ secToRad s = deg * ( pi / 180 )
 
 data LatLongD = LatLongD !Int !Int deriving Show
 
-latLongDFromSecs :: (Int, Int) -> LatLongD
-latLongDFromSecs (a, o) = LatLongD a o
+deltaFromSecs :: (Int, Int) -> LatLongD
+deltaFromSecs (a, o) = LatLongD a o
 
-zeroLatLongD :: LatLongD
-zeroLatLongD = LatLongD 0 0
+zeroDelta :: LatLongD
+zeroDelta = LatLongD 0 0
 
-latLongDToSecs :: LatLongD -> (Int, Int)
-latLongDToSecs (LatLongD a o) = (a, o)
+deltaToSecs :: LatLongD -> (Int, Int)
+deltaToSecs (LatLongD a o) = (a, o)
 
 addD :: LatLong -> LatLongD -> Maybe LatLong
 addD ll (LatLongD latd longd) = latLongFromSecs (lat + latd, long + longd)
@@ -195,18 +195,18 @@ addD ll (LatLongD latd longd) = latLongFromSecs (lat + latd, long + longd)
 subD :: LatLong -> LatLongD -> Maybe LatLong
 subD ll (LatLongD latd longd) = addD ll (LatLongD (negate latd) (negate longd))
 
-latLongDFromTo :: LatLong -> LatLong -> LatLongD
-latLongDFromTo x y = latLongDFromSecs (ylat - xlat, ylong - xlong)
+deltaFromTo :: LatLong -> LatLong -> LatLongD
+deltaFromTo x y = deltaFromSecs (ylat - xlat, ylong - xlong)
   where (xlat, xlong) = latLongToSecs x
         (ylat, ylong) = latLongToSecs y
 
 scaleD :: (Int, Int) -> LatLongD -> LatLongD
 scaleD (slat, slong) (LatLongD latd longd) = LatLongD (slat*latd) (slong*longd)
 
-parseLatLongD :: String -> Maybe LatLongD
-parseLatLongD s =
+parseDelta :: String -> Maybe LatLongD
+parseDelta s =
   case (reads latPart, reads longPart) of
-    ( [(lat, [])], [(lon, [])] ) -> Just (latLongDFromSecs (lat, lon))
+    ( [(lat, [])], [(lon, [])] ) -> Just (deltaFromSecs (lat, lon))
     _ -> Nothing
   where
     (latPart, rest) = break (== ',') s
@@ -217,14 +217,14 @@ parseLatLongD s =
 newtype LatLongSize = LatLongSize LatLongD deriving Show
 
 zeroSize :: LatLongSize
-zeroSize = LatLongSize zeroLatLongD
+zeroSize = LatLongSize zeroDelta
 
-latLongSizeFromSecs :: (Int, Int) -> LatLongSize
-latLongSizeFromSecs = LatLongSize . latLongDFromSecs
+sizeFromSecs :: (Int, Int) -> LatLongSize
+sizeFromSecs = LatLongSize . deltaFromSecs
 
 -- TODO won't work across 180 line
 sizeFromCorners :: LatLong -> LatLong -> LatLongSize
-sizeFromCorners x y = latLongSizeFromSecs (abs (laty - latx), abs (longy - longx))
+sizeFromCorners x y = sizeFromSecs (abs (laty - latx), abs (longy - longx))
   where (latx, longx) = latLongToSecs x
         (laty, longy) = latLongToSecs y
 
@@ -239,20 +239,20 @@ scaleSize (slat, slong) (LatLongSize d)
   | slat < 0 || slong < 0 = error "scaleSize: negative scale"
   | otherwise = LatLongSize (scaleD (slat, slong) d)
 
-latLongDQuotSize :: LatLongD -> LatLongSize -> (Int, Int)
-latLongDQuotSize (LatLongD dlat dlong) (LatLongSize (LatLongD slat slong))
+deltaQuotSize :: LatLongD -> LatLongSize -> (Int, Int)
+deltaQuotSize (LatLongD dlat dlong) (LatLongSize (LatLongD slat slong))
   = (dlat `quot` slat, dlong `quot` slong)
 
-latLongSizeQuotSize :: LatLongSize -> LatLongSize -> (Int, Int)
-latLongSizeQuotSize (LatLongSize d) s = latLongDQuotSize d s
+sizeQuotSize :: LatLongSize -> LatLongSize -> (Int, Int)
+sizeQuotSize (LatLongSize d) s = deltaQuotSize d s
 
-latLongSizeToSecs :: LatLongSize -> (Int, Int)
-latLongSizeToSecs (LatLongSize d) = latLongDToSecs d
+sizeToSecs :: LatLongSize -> (Int, Int)
+sizeToSecs (LatLongSize d) = deltaToSecs d
 
 parseSize :: String -> Maybe LatLongSize
 parseSize s =
   case (reads latPart, reads longPart) of
-    ( [(lat, [])], [(lon, [])] ) -> Just (latLongSizeFromSecs (lat, lon))
+    ( [(lat, [])], [(lon, [])] ) -> Just (sizeFromSecs (lat, lon))
     _ -> Nothing
   where
     (latPart, rest) = break (== 'x') s

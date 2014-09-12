@@ -22,7 +22,7 @@ mkTopo :: [Sect] -> Topo
 mkTopo = Topo
 
 topoSep :: Topo -> LatLongSize
-topoSep (Topo []) = latLongSizeFromSecs (1, 1) -- hack, to fail nicely when there's no input data
+topoSep (Topo []) = sizeFromSecs (1, 1) -- hack, to fail nicely when there's no input data
 topoSep (Topo (x:_)) = sectSep x
 
 type MetresI = Int
@@ -41,8 +41,8 @@ data Sect = Sect { sectArea :: Area
 -- TODO check divisions are exact
 sectHeightAt :: LatLong -> Sect -> MetresI
 sectHeightAt pos sect = sectArray sect ! ix
-    where ix = d `latLongDQuotSize` sz
-          d = latLongDFromTo sw pos
+    where ix = d `deltaQuotSize` sz
+          d = deltaFromTo sw pos
           sw = areaSW (sectArea sect)
           sz = sectSep sect
 
@@ -53,7 +53,7 @@ mkSect area sep vals = Sect area sep arr
     where
       arr = array bnds (zip ixsNorthtoSouth (concat vals))
       ixsNorthtoSouth = [(y, x) | y <- [maxy, maxy-1 .. 0], x <- [0..maxx]]
-      (latSamps, longSamps) = areaSize area `latLongSizeQuotSize` sep
+      (latSamps, longSamps) = areaSize area `sizeQuotSize` sep
       (maxy, maxx) = (latSamps - 1, longSamps - 1)
       bnds = ((0, 0), (maxy, maxx))
 
@@ -75,8 +75,8 @@ topoHeights' refPoint area topo = arrayFromFn bnds pointAt
     where
       bnds = ((0, 0), (sampsLat - 1, sampsLong - 1))
       (sampsLat, sampsLong) = (latSec `quot` latSep, longSec `quot` longSep)
-      (latSec, longSec) = latLongSizeToSecs (areaSize area)
-      (latSep, longSep) = latLongSizeToSecs (topoSep topo)
+      (latSec, longSec) = sizeToSecs (areaSize area)
+      (latSep, longSep) = sizeToSecs (topoSep topo)
       (mPerLatSec, mPerLongSec) = metresPerSecAt (latitude refPoint)
       (mPerLatSamp, mPerLongSamp) = ( mPerLatSec * fromIntegral latSep,
                                       mPerLongSec * fromIntegral longSep )

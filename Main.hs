@@ -93,7 +93,7 @@ optParser =
     <*> option (eitherReader parseSizeOpt)
                ( short 's'
                  <> long "size"
-                 <> value (latLongSizeFromSecs (300, 600))
+                 <> value (sizeFromSecs (300, 600))
                  <> metavar "ARCSECxARCSEC"
                  <> help "size in arcseconds" )
     <*> option (eitherReader parseOffsetOpt)
@@ -121,7 +121,7 @@ parseLatLongOpt s = case parseLatLong s of
                       Just x -> Right x
 
 parseOffsetOpt :: String -> Either String (Maybe LatLongD)
-parseOffsetOpt s = case parseLatLongD s of
+parseOffsetOpt s = case parseDelta s of
                      Nothing -> Left ("bad offset '" ++ s ++ "'")
                      Just x -> Right (Just x)
 

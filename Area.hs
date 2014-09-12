@@ -33,10 +33,10 @@ areaFromCentreAndSize :: LatLong -> LatLongSize -> Maybe Area
 areaFromCentreAndSize cent size = do
   sw <- cent `subSize` halfSize
   return Area { areaSW = sw, areaSize = size }
-    where halfSize = latLongSizeFromSecs (halfLatSec, halfLongSec)
+    where halfSize = sizeFromSecs (halfLatSec, halfLongSec)
           halfLatSec = (latSize + 1) `quot` 2
           halfLongSec = (longSize + 1) `quot` 2
-          (latSize, longSize) = latLongSizeToSecs size
+          (latSize, longSize) = sizeToSecs size
 
 areaFromSouthwestAndSize :: LatLong -> LatLongSize -> Area
 areaFromSouthwestAndSize sw sz =
@@ -92,7 +92,7 @@ areaContains a pos = lat >= s && lat < n && long >= w && long < e
 expandToGrid :: LatLongSize -> Area -> Area
 expandToGrid size area = fromSWAndNE sw' ne'
   where
-    (latSep, longSep) = latLongSizeToSecs size
+    (latSep, longSep) = sizeToSecs size
     s' = toMultipleBelow latSep s
     n' = toMultipleAbove latSep n
     w' = toMultipleBelow longSep w

@@ -14,7 +14,7 @@ secsPerSamp :: Int
 secsPerSamp = 3
 
 sep :: LatLongSize
-sep = latLongSizeFromSecs (secsPerSamp, secsPerSamp)
+sep = sizeFromSecs (secsPerSamp, secsPerSamp)
 
 readAscs :: Area -> [String] -> IO Topo
 readAscs area fileNames =
@@ -60,10 +60,10 @@ fileRegion wholeArea wantedArea =
     , regNumLines = wantedLines
     , regFirstSamp = (wantedW - wholeW) `quot` secsPerSamp
     , regNumSamps = wantedSamps }
-    where (wantedLat, wantedLong) = latLongSizeToSecs (areaSize wantedArea)
+    where (wantedLat, wantedLong) = sizeToSecs (areaSize wantedArea)
           (wantedLines, wantedSamps) = (wantedLat `quot` secsPerSamp,
                                         wantedLong `quot` secsPerSamp)
-          (wholeLat, _) = latLongSizeToSecs (areaSize wholeArea)
+          (wholeLat, _) = sizeToSecs (areaSize wholeArea)
           wholeLines = wholeLat `quot` secsPerSamp
           (wholeS, wholeW) = latLongToSecs (areaSW wholeArea)
           (wantedS, wantedW) = latLongToSecs (areaSW wantedArea)
