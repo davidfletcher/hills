@@ -1,5 +1,7 @@
 /dist
 /Setup.hs
+/.cabal-sandbox
+/cabal.sandbox.config
 srtm_*.asc
 srtm_*.zip
 *.stl
