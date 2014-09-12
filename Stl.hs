@@ -1,7 +1,9 @@
-module Stl ( Model, Tri, R3, toString, fromTris, translate, onPlatform ) where
+module Stl ( Model, Tri, R3, toByteString, fromTris, translate, onPlatform ) where
 
+import qualified Data.ByteString.Lazy as L
+import qualified Data.ByteString.Builder as B
 import Data.List
-import Numeric
+import Data.Monoid
 
 newtype Model = Model { modelTris :: [Tri] }
 
@@ -12,25 +14,31 @@ type R3 = (Double, Double, Double)
 fromTris :: [Tri] -> Model
 fromTris = Model
 
-toString :: String -> Model -> String
-toString name model =
-    unlines ( ["solid " ++ name]
-              ++ concatMap facet (modelTris model)
-              ++ ["endsolid " ++ name] )
+toByteString :: String -> Model -> L.ByteString
+toByteString name model =
+  B.toLazyByteString (
+    B.stringUtf8 "solid " <> B.stringUtf8 name <> newline
+    <> mconcat (map facet (modelTris model))
+    <> B.stringUtf8 "endsolid " <> B.stringUtf8 name <> newline )
 
-facet :: Tri -> [String]
-facet (p0, p1, p2) = [
- "  facet normal " ++ stlPoint (0, 0, 0),
- "  outer loop",
- "    vertex " ++ stlPoint p0,
- "    vertex " ++ stlPoint p1,
- "    vertex " ++ stlPoint p2,
- "  endloop",
- "  endfacet" ]
+newline :: B.Builder
+newline = B.charUtf8 '\n'
 
-stlPoint :: R3 -> String
-stlPoint (x, y, z) = s x ++ " " ++ s y ++ " " ++ s z
-    where s f = showEFloat Nothing f ""
+space :: B.Builder
+space = B.charUtf8 ' '
+
+facet :: Tri -> B.Builder
+facet (p0, p1, p2) =
+     B.stringUtf8 "  facet normal " <> stlPoint (0, 0, 0) <> newline
+  <> B.stringUtf8 "  outer loop" <> newline
+  <> B.stringUtf8 "    vertex " <> stlPoint p0 <> newline
+  <> B.stringUtf8 "    vertex " <> stlPoint p1 <> newline
+  <> B.stringUtf8 "    vertex " <> stlPoint p2 <> newline
+  <> B.stringUtf8 "  endloop" <> newline
+  <> B.stringUtf8 "  endfacet" <> newline
+
+stlPoint :: R3 -> B.Builder
+stlPoint (x, y, z) = B.doubleDec x <> space <> B.doubleDec y <> space <> B.doubleDec z
 
 translate :: R3 -> Model -> Model
 translate offset = Model . map (applyToPoints (addR3 offset)) . modelTris

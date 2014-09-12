@@ -10,6 +10,7 @@ import qualified Topo
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Except
+import qualified Data.ByteString.Lazy as L
 import Data.Monoid
 import Options.Applicative
 import System.IO
@@ -32,7 +33,7 @@ run' opts = do
   topo <- liftIO (Parse.readAscs area fs)
   (usedArea, samps) <- hoistExcept (getTopo area topo)
   liftIO (putStrLn ("generating for area: " ++ Area.areaShowUser usedArea))
-  liftIO (writeFile (optOutFile opts) (makeStl opts samps))
+  liftIO (L.writeFile (optOutFile opts) (makeStl opts samps))
 
 getTopo :: Area.Area -> Topo.Topo -> Err (Area.Area, Topo.Heights)
 getTopo area topo = withExcept showBad (Topo.topoHeights area topo)
@@ -57,8 +58,8 @@ getArea centre size =
 maybeToExcept :: a -> Maybe b -> Except a b
 maybeToExcept err = maybe (throwE err) return
 
-makeStl :: Opts -> Topo.Heights -> String
-makeStl opts samps = Stl.toString "topo" stl
+makeStl :: Opts -> Topo.Heights -> L.ByteString
+makeStl opts samps = Stl.toByteString "topo" stl
   where baseAlt = optBaseAlt opts
         stl = Model.model baseAlt samps
 
