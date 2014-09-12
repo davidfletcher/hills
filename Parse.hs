@@ -63,7 +63,7 @@ fileRegion wholeArea wantedArea =
     where (wantedLat, wantedLong) = latLongSizeToSecs (areaSize wantedArea)
           (wantedLines, wantedSamps) = (wantedLat `quot` secsPerSamp,
                                         wantedLong `quot` secsPerSamp)
-          wholeLat = latSize (areaSize wholeArea)
+          (wholeLat, _) = latLongSizeToSecs (areaSize wholeArea)
           wholeLines = wholeLat `quot` secsPerSamp
           (wholeS, wholeW) = latLongToSecs (areaSW wholeArea)
           (wantedS, wantedW) = latLongToSecs (areaSW wantedArea)

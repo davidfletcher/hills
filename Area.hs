@@ -34,8 +34,9 @@ areaFromCentreAndSize cent size = do
   sw <- addD cent (latLongDFromSecs ( centLat - halfLatSec, centLong - halfLongSec ))
   return Area { areaSW = sw, areaSize = size }
     where (centLat, centLong) = latLongToSecs cent
-          halfLatSec = (latSize size + 1) `quot` 2
-          halfLongSec = (longSize size + 1) `quot` 2
+          halfLatSec = (latSize + 1) `quot` 2
+          halfLongSec = (longSize + 1) `quot` 2
+          (latSize, longSize) = latLongSizeToSecs size
 
 areaFromSouthwestAndSize :: LatLong -> LatLongSize -> Area
 areaFromSouthwestAndSize sw sz =

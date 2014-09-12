@@ -20,14 +20,10 @@ module LatLong ( LatLong
                , zeroLatLongD
                , latLongDFromSecs
                , latLongDToSecs
-               , latD
-               , longD
                , addD
                , scaleD
                , zeroSize
                , sizeFromCorners
-               , latSize
-               , longSize
                , latLongSizeToSecs
                , latLongSizeFromSecs
                , addSize
@@ -177,7 +173,7 @@ secToRad s = deg * ( pi / 180 )
 
 -- Deltas
 
-data LatLongD = LatLongD { latD :: Int, longD :: Int } deriving Show
+data LatLongD = LatLongD !Int !Int deriving Show
 
 latLongDFromSecs :: (Int, Int) -> LatLongD
 latLongDFromSecs (a, o) = LatLongD a o
@@ -206,32 +202,30 @@ parseLatLongD s =
 
 -- Sizes
 
-data LatLongSize = LatLongSize { latSize :: Int, longSize :: Int }
-                 deriving Show
+newtype LatLongSize = LatLongSize LatLongD deriving Show
 
 zeroSize :: LatLongSize
-zeroSize = LatLongSize 0 0
+zeroSize = LatLongSize zeroLatLongD
 
 latLongSizeFromSecs :: (Int, Int) -> LatLongSize
-latLongSizeFromSecs (a, o) = LatLongSize a o
+latLongSizeFromSecs = LatLongSize . latLongDFromSecs
 
 -- TODO won't work across 180 line
 sizeFromCorners :: LatLong -> LatLong -> LatLongSize
-sizeFromCorners x y = LatLongSize (abs (laty - latx)) (abs (longy - longx))
+sizeFromCorners x y = latLongSizeFromSecs (abs (laty - latx), abs (longy - longx))
   where (latx, longx) = latLongToSecs x
         (laty, longy) = latLongToSecs y
 
 addSize :: LatLong -> LatLongSize -> Maybe LatLong
-addSize ll (LatLongSize latsz longsz) = latLongFromSecs (lat + latsz, long + longsz)
-  where (lat, long) = latLongToSecs ll
+addSize ll (LatLongSize d) = addD ll d
 
 scaleSize :: (Int, Int) -> LatLongSize -> LatLongSize
-scaleSize (slat, slong) (LatLongSize lat long)
+scaleSize (slat, slong) (LatLongSize d)
   | slat < 0 || slong < 0 = error "scaleSize: negative scale"
-  | otherwise = LatLongSize (slat*lat) (slong*long)
+  | otherwise = LatLongSize (scaleD (slat, slong) d)
 
 latLongSizeToSecs :: LatLongSize -> (Int, Int)
-latLongSizeToSecs (LatLongSize a o) = (a, o)
+latLongSizeToSecs (LatLongSize d) = latLongDToSecs d
 
 parseSize :: String -> Maybe LatLongSize
 parseSize s =
