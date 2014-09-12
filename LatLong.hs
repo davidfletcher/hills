@@ -33,6 +33,7 @@ module LatLong ( LatLong
                , scaleSize
                , deltaQuotSize
                , sizeQuotSize
+               , sizeInMetres
                , parseLatLong
                , parseDelta
                , parseSize
@@ -248,6 +249,13 @@ sizeQuotSize (LatLongSize d) = deltaQuotSize d
 
 sizeToSecs :: LatLongSize -> (Int, Int)
 sizeToSecs (LatLongSize d) = deltaToSecs d
+
+sizeInMetres :: LatLong -> LatLongSize -> (Double, Double)
+sizeInMetres refPoint s = ( mPerLatSec * fromIntegral latSecs,
+                            mPerLongSec * fromIntegral longSecs )
+  where
+    (mPerLatSec, mPerLongSec) = metresPerSecAt (latitude refPoint)
+    (latSecs, longSecs) = sizeToSecs s
 
 parseSize :: String -> Maybe LatLongSize
 parseSize s =

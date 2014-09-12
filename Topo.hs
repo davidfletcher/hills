@@ -75,10 +75,7 @@ topoHeights' refPoint area topo = arrayFromFn bnds pointAt
     where
       bnds = ((0, 0), (sampsLat - 1, sampsLong - 1))
       (sampsLat, sampsLong) = areaSize area `sizeQuotSize` topoSep topo
-      (latSep, longSep) = sizeToSecs (topoSep topo)
-      (mPerLatSec, mPerLongSec) = metresPerSecAt (latitude refPoint)
-      (mPerLatSamp, mPerLongSamp) = ( mPerLatSec * fromIntegral latSep,
-                                      mPerLongSec * fromIntegral longSep )
+      (mPerLatSamp, mPerLongSamp) = sizeInMetres refPoint (topoSep topo)
       pointAt (y, x) = (dblX, dblY, dblZ)
           where
             dblX = fromIntegral x * mPerLongSamp
