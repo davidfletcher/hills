@@ -244,7 +244,7 @@ deltaQuotSize (LatLongD dlat dlong) (LatLongSize (LatLongD slat slong))
   = (dlat `quot` slat, dlong `quot` slong)
 
 sizeQuotSize :: LatLongSize -> LatLongSize -> (Int, Int)
-sizeQuotSize (LatLongSize d) s = deltaQuotSize d s
+sizeQuotSize (LatLongSize d) = deltaQuotSize d
 
 sizeToSecs :: LatLongSize -> (Int, Int)
 sizeToSecs (LatLongSize d) = deltaToSecs d
