@@ -5,12 +5,13 @@ import Stl
 
 import Data.Array
 
-model :: Double -> Heights -> Model
-model baseAlt hs =
-    onPlatform (R3 120 120 120) . fromTris $ allTris
+model :: Double -> Double -> Heights -> Model
+model scaleFac baseAlt hs =
+    scale (R3 s s s) . toPositiveOctant . fromTris $ allTris
         where allTris = surface hs
                         ++ walls baseAlt hs
                         ++ base baseAlt hs
+              s = 1 / scaleFac
 
 surface :: Heights -> [Tri]
 surface = concatMap quadToTri .  quads

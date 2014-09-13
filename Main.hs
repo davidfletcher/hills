@@ -80,14 +80,15 @@ maybeToExcept err = maybe (throwE err) return
 
 makeStl :: Opts -> Topo.Heights -> L.ByteString
 makeStl opts samps = Stl.toBinary stl
-  where baseAlt = optBaseAlt opts
-        stl = Model.model baseAlt samps
+  where
+    stl = Model.model (optScale opts) (optBaseAlt opts) samps
 
 data Opts = Opts
     { optCentre :: LatLong
     , optSize :: LatLongSize
     , optOffset :: Maybe LatLongD
     , optBaseAlt :: Double
+    , optScale :: Double
     , optInDir :: Maybe FilePath
     , optOutFile :: FilePath
     } deriving Show
@@ -104,8 +105,8 @@ optParser =
                  <> metavar "LAT,LONG"
                  <> help "center point" )
     <*> option (eitherReader parseSizeOpt)
-               ( short 's'
-                 <> long "size"
+               ( short 'd'
+                 <> long "dimensions"
                  <> value (sizeFromSecs (300, 600))
                  <> metavar "ARCSECxARCSEC"
                  <> help "size in arcseconds" )
@@ -120,6 +121,12 @@ optParser =
                  <> value ((-100) :: Double)
                  <> metavar "METERS"
                  <> help "base altitude" )
+    <*> option auto
+               ( short 's'
+                 <> long "scale"
+                 <> value 100
+                 <> metavar "FACTOR"
+                 <> help "factor to scale down by" )
     <*> option (eitherReader (Right . Just))
                ( short 'i'
                  <> long "input-dir"

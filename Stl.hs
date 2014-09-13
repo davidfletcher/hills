@@ -5,7 +5,8 @@ module Stl ( Model
            , toAscii
            , fromTris
            , translate
-           , onPlatform )
+           , scale
+           , toPositiveOctant )
 where
 
 import qualified Data.ByteString.Lazy as L
@@ -125,6 +126,3 @@ fitToBox (R3 boxx boxy boxz) m = scale (R3 smallest smallest smallest) m'
 centerXY :: Model -> Model
 centerXY m = translate (R3 (-dx / 2) (-dy / 2) 0) m
     where (R3 dx dy _) = dimensions m
-
-onPlatform :: R3 -> Model -> Model
-onPlatform box = centerXY . fitToBox box
