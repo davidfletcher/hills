@@ -14,6 +14,7 @@ import qualified Data.ByteString.Lazy as L
 import Data.Monoid
 import Options.Applicative
 import System.IO
+import Numeric (showFFloat)
 
 main :: IO ()
 main = execParser optInfo >>= run
@@ -32,8 +33,20 @@ run' opts = do
   (refPoint, area, fs) <- hoistExcept (getAreaAndFiles opts)
   topo <- liftIO (Parse.readAscs area fs)
   (usedArea, samps) <- hoistExcept (getTopo refPoint area topo)
-  liftIO (putStrLn ("generating for area: " ++ Area.areaShowUser usedArea))
+  liftIO (putStr (reportArea refPoint usedArea))
   liftIO (L.writeFile (optOutFile opts) (makeStl opts samps))
+
+reportArea :: LatLong -> Area.Area -> String
+reportArea refPt a =
+  unlines [ "generating for ",
+            "  " ++ Area.areaShowUser a,
+            "  " ++ show latSec ++ " arcsec N/S x " ++ show longSec ++ " arcsec E/W",
+            "  " ++ fmtKm latKm ++ "km N/S x " ++ fmtKm longKm ++ "km E/W" ]
+  where
+    (latSec, longSec) = sizeToSecs (Area.areaSize a)
+    (latM, longM) = sizeInMetres refPt (Area.areaSize a)
+    (latKm, longKm) = (latM / 1000, longM / 1000)
+    fmtKm n = showFFloat (Just 3) n ""
 
 getTopo :: LatLong -> Area.Area -> Topo.Topo -> Err (Area.Area, Topo.Heights)
 getTopo refPoint area topo =
