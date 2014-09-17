@@ -86,9 +86,6 @@ applyToPoints f (Tri p0 p1 p2) = Tri (f p0) (f p1) (f p2)
 minR3 :: R3 -> R3 -> R3
 minR3 (R3 x0 y0 z0) (R3 x1 y1 z1) = R3 (min x0 x1) (min y0 y1) (min z0 z1)
 
-maxR3 :: R3 -> R3 -> R3
-maxR3 (R3 x0 y0 z0) (R3 x1 y1 z1) = R3 (max x0 x1) (max y0 y1) (max z0 z1)
-
 addR3 :: R3 -> R3 -> R3
 addR3 (R3 x0 y0 z0) (R3 x1 y1 z1) = R3 (x0 + x1) (y0 + y1) (z0 + z1)
 
@@ -105,24 +102,5 @@ toPositiveOctant m = let minp = minPoint m in
 minPoint :: Model -> R3
 minPoint = foldl1' minR3 . concatMap triPoints . modelTris
 
-maxPoint :: Model -> R3
-maxPoint = foldl1' maxR3 . concatMap triPoints . modelTris
-
-dimensions :: Model -> R3
-dimensions m = R3 (maxx - minx) (maxy - miny) (maxz - minz)
-    where R3 minx miny minz = minPoint m
-          R3 maxx maxy maxz = maxPoint m
-
 triPoints :: Tri -> [R3]
 triPoints (Tri p0 p1 p2) = [p0, p1, p2]
-
-fitToBox :: R3 -> Model -> Model
-fitToBox (R3 boxx boxy boxz) m = scale (R3 smallest smallest smallest) m'
-    where smallest = minimum [sx, sy, sz]
-          (R3 dx dy dz) = dimensions m'
-          (sx, sy, sz) = (boxx / dx, boxy / dy, boxz / dz)
-          m' = toPositiveOctant m
-
-centerXY :: Model -> Model
-centerXY m = translate (R3 (-dx / 2) (-dy / 2) 0) m
-    where (R3 dx dy _) = dimensions m
