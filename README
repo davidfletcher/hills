@@ -1,20 +1,110 @@
-Google Maps (turn on lat/long tooltips in Maps Labs)
+== Terrain ==
 
-http://srtm.csi.cgiar.org/
+This program generates 3D models of areas of the earth's surface.
 
-    wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_44_13.zip
-OR  wget ftp://xftp.jrc.it/pub/srtmV4/arcasci/srtm_44_13.zip
+It uses the SRTM 90m elevation data from CGIAR-CSI which is
+downloadable free of charge (see http://srtm.csi.cgiar.org).  It
+outputs STL.
 
-    unzip srtm_44_13.zip
 
-Mont Blanc
+== Basic use ==
 
-    terrain -i srtm_30_03.asc -c 45.8334,6.8650
+1. Pick a latitude and longitude (Google Maps will show it when you
+click on a point.)
 
-Mount Kilimanjaro
+2. Run terrain.  It won't work because we don't have the input data
+yet, but it will tell us which tiles we need.
 
-    terrain -c -3.076,37.35 -s 1500x1500 -b 600 srtm_44_13.asc
+    terrain --position 56,-4 out.stl
 
-Ben Nevis (crosses two input files):
+3. Obtain the input data tiles from CGIAR-CSI or a mirror.
 
-    terrain -c 56.812,-4.99 srtm_35_01.asc srtm_36_01.asc
+    http://srtm.csi.cgiar.org/SELECTION/inputCoord.asp
+
+You want the ArcInfo ASCII format.  The download interface on the
+website is painful so you may find it easier just to construct a
+direct URL.
+
+    wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_36_01.zip
+
+Unzip the downloaded file and you should obtain a file named srtm_36_01.asc.
+
+3. Run terrain to generate a model.
+
+    terrain --position 56,-4 out.stl
+
+4. Look at the output in your favourite STL viewer.
+
+    meshlab out.stl &
+
+
+== Options ==
+
+--position LAT,LONG
+
+Latitude and longitude as decimals.  North of the equator is positive,
+south is negative. East from Greenwich is positive, west is negative.
+
+Usually the centre of the area to be modelled (but see --offset).
+
+--dimensions ARCSECxARCSEC
+
+Size of the area to model in arcseconds, latitude first.  Defaults to
+300x600.
+
+Remember as you go further north or south from the equator, arcseconds
+of longitude get smaller.
+
+--base-altitude METRES
+
+The bottom of the volume to be modelled.  Defaults to 0m (sea level).
+If you are modelling land on a plateau or massif you may want to set
+this higher so that your model won't be on such a thick base.  If you
+are modelling land that goes below sea level you'll need to use a
+negative value to put the base low enough.
+
+--scale FACTOR
+
+Defaults to 100, meaning 1:100.  This might seem like a larger scale
+than anyone would want, but note that the program outputs in metres
+whereas 3D printers commonly expect millimetres, so you might already
+be getting a factor of 1000 on top of what you specify here.
+
+--input-dir DIR
+
+If you have your .asc files somewhere other than the current
+directory, point to them with this option.
+
+--offset ARCSECxARCSEC
+
+In arcseconds, latitude first.  Offset from the specified position to
+the southwest corner of the area.  By default the position is the
+centre of the area.  So if you'd rather specify the southwest corner
+you can use an offset of 0x0.
+
+However, the main reason for this option is to generate multi-part
+models without having to change the reference position.  This is
+convenient because the dimensions are in arcseconds so it's easier to
+do your local positioning in arcseconds too.  It's also more accurate,
+because the program calculates the number of metres per arcsecond at
+the specified position, and if you change the position between two of
+the parts their scales may not match perfectly.
+
+
+== Examples ==
+
+Mont Blanc.  Needs srtm_30_03.asc.
+
+    terrain -p 45.8334,6.8650
+
+
+Mount Kilimanjaro.  Needs srtm_44_13.asc.  We use a size of 1500x1500
+and base altitude of 600m.
+
+    terrain -p -3.076,37.35 -d 1500x1500 -b 600
+
+
+Ben Nevis.  This crosses a tile boundary - needs both srtm_35_01.asc
+and srtm_36_01.asc.
+
+    terrain -p 56.812,-4.99

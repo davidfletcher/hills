@@ -1,13 +1,21 @@
 name:                terrain
 version:             0.1.0.0
-synopsis:            Generate STL models from CGIAR data.
--- description:
+synopsis:            Generate STL models from SRTM elevation data.
+description:         This program generates 3D models of areas of the
+                     earth's surface.
+
+                     It uses the SRTM 90m elevation data from
+                     CGIAR-CSI which is downloadable free of charge
+                     (see http://srtm.csi.cgiar.org/).  It outputs STL.
+
 license:             BSD3
 license-file:        LICENSE
 author:              David Fletcher
 maintainer:          david@bubblycloud.com
 copyright:           (c) 2014 David Fletcher
--- category:
+homepage:            http://www.bubblycloud.com/terrain/
+category:            Geography
+
 build-type:          Simple
 extra-source-files:  README
 cabal-version:       >=1.10
@@ -20,7 +28,7 @@ executable terrain
                        directory >=1.2,
                        transformers >=0.4,
                        text >=1.1,
-                       optparse-applicative >= 0.10
+                       optparse-applicative >=0.10
   default-language:    Haskell2010
   ghc-options:         -Wall -O2
 --                       -fprof-auto "-with-rtsopts=-p"

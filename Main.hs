@@ -100,10 +100,10 @@ optParser :: Parser Opts
 optParser =
     Opts
     <$> option (eitherReader parseLatLongOpt)
-               ( short 'c'
-                 <> long "center"
+               ( short 'p'
+                 <> long "position"
                  <> metavar "LAT,LONG"
-                 <> help "center point" )
+                 <> help "position (by default the centre)" )
     <*> option (eitherReader parseSizeOpt)
                ( short 'd'
                  <> long "dimensions"
@@ -114,12 +114,12 @@ optParser =
                ( long "offset"
                  <> value Nothing
                  <> metavar "ARCSEC,ARCSEC"
-                 <> help "offset from center in arcseconds" )
+                 <> help "offset from centre in arcseconds" )
     <*> option auto
                ( short 'b'
                  <> long "base-altitude"
                  <> value ((-100) :: Double)
-                 <> metavar "METERS"
+                 <> metavar "METRES"
                  <> help "base altitude" )
     <*> option auto
                ( short 's'
