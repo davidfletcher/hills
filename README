@@ -1,10 +1,12 @@
-== Terrain ==
+== hills ==
 
 This program generates 3D models of areas of the earth's surface.
 
 It uses the SRTM 90m elevation data from CGIAR-CSI which is
 downloadable free of charge (see http://srtm.csi.cgiar.org).  It
 outputs binary STL.
+
+In spite of its name the program also works on valleys.
 
 -- David Fletcher <david@bubblycloud.com>
 
@@ -14,10 +16,10 @@ outputs binary STL.
 1. Pick a latitude and longitude (Google Maps will show it when you
 click on a point.)
 
-2. Run terrain.  It won't work because we don't have the input data
+2. Run hills.  It won't work because we don't have the input data
 yet, but it will tell us which tiles we need.
 
-    terrain --position 56,-4 out.stl
+    hills --position 56,-4 out.stl
 
 3. Obtain the input data tiles from CGIAR-CSI or a mirror.
 
@@ -31,9 +33,9 @@ direct URL.
 
 Unzip the downloaded file and you should obtain a file named srtm_36_01.asc.
 
-3. Run terrain to generate a model.
+3. Run hills to generate a model.
 
-    terrain --position 56,-4 out.stl
+    hills --position 56,-4 out.stl
 
 4. Look at the output in your favourite STL viewer.
 
@@ -108,16 +110,16 @@ which are multiples of three.
 
 Mont Blanc.  Needs srtm_30_03.asc.
 
-    terrain -p 45.8334,6.8650
+    hills -p 45.8334,6.8650
 
 
 Mount Kilimanjaro.  Needs srtm_44_13.asc.  We use a size of 1500x1500
 and base altitude of 600m.
 
-    terrain -p -3.076,37.35 -d 1500x1500 -b 600
+    hills -p -3.076,37.35 -d 1500x1500 -b 600
 
 
 Ben Nevis.  This crosses a tile boundary - needs both srtm_35_01.asc
 and srtm_36_01.asc.
 
-    terrain -p 56.812,-4.99
+    hills -p 56.812,-4.99

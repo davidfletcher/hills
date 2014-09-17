@@ -1,4 +1,4 @@
-name:                terrain
+name:                hills
 version:             0.1.0.0
 
 synopsis:            Generate STL models from SRTM elevation data.
@@ -15,14 +15,14 @@ license-file:        LICENSE
 author:              David Fletcher
 maintainer:          david@bubblycloud.com
 copyright:           (c) 2014 David Fletcher
-homepage:            http://www.bubblycloud.com/terrain/
+homepage:            http://www.bubblycloud.com/hills/
 category:            Geography
 
 build-type:          Simple
 extra-source-files:  README
 cabal-version:       >=1.10
 
-executable terrain
+executable hills
   main-is:             Main.hs
 
   other-modules:       Area CGIAR LatLong Model Parse Stl Topo
