@@ -1,9 +1,10 @@
-== hills ==
+hills
+=====
 
-This program generates 3D models of areas of the earth's surface.
+A program to generate 3D models of places on the Earth's surface.
 
-It uses the SRTM 90m elevation data from CGIAR-CSI which is
-downloadable free of charge (see http://srtm.csi.cgiar.org).  It
+It uses as input the SRTM 90m elevation data from CGIAR-CSI, which is
+downloadable free of charge from <http://srtm.csi.cgiar.org>.  It
 outputs binary STL.
 
 In spite of its name the program also works on valleys.
@@ -11,19 +12,19 @@ In spite of its name the program also works on valleys.
 -- David Fletcher <david@bubblycloud.com>
 
 
-== Basic use ==
+Basic use
+---------
 
-1. Pick a latitude and longitude (Google Maps will show it when you
+Pick a latitude and longitude. (Google Maps will show it when you
 click on a point.)
 
-2. Run hills.  It won't work because we don't have the input data
-yet, but it will tell us which tiles we need.
+Run hills.  It won't work because we don't have the input data yet,
+but it will tell us which tiles we need.
 
     hills --position 56,-4 out.stl
 
-3. Obtain the input data tiles from CGIAR-CSI or a mirror.
-
-    http://srtm.csi.cgiar.org/SELECTION/inputCoord.asp
+Obtain the input data tiles from CGIAR-CSI
+<http://srtm.csi.cgiar.org/SELECTION/inputCoord.asp> or a mirror.
 
 You want the ArcInfo ASCII format.  The download interface on the
 website is painful so you may find it easier just to construct a
@@ -31,18 +32,18 @@ direct URL.
 
     wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_36_01.zip
 
-Unzip the downloaded file and you should obtain a file named srtm_36_01.asc.
+Unzip the downloaded file and you should obtain a file named
+srtm_36_01.asc.
 
-3. Run hills to generate a model.
+Run hills to generate a model.
 
     hills --position 56,-4 out.stl
 
-4. Look at the output in your favourite STL viewer.
-
-    meshlab out.stl &
+Look at the output in your favourite STL viewer.
 
 
-== Options ==
+Options
+-------
 
 --position LAT,LONG
 
@@ -95,31 +96,45 @@ the specified position, and if you change the position between two of
 the parts their scales may not match perfectly.
 
 
-== Positioning caveat ==
+Caveats and bugs
+----------------
 
-The program doesn't yet do any interpolation between the input
-samples.  So the position you supply is rounded to the nearest input
-sample position, and dimensions that are not multiples of three
-arcseconds are expanded so that the edges are on 3-arcsecond
-boundaries.  If you care about the exact size of the model or you are
-making a multi-part model, it is best to use offsets and dimensions
-which are multiples of three.
+- The SRTM data doesn't go north or south of 60 degrees, so this
+  program can't help you in those areas.
+
+- The program doesn't yet do any interpolation between the input
+  samples.  So the position you supply is rounded to the nearest input
+  sample position, and dimensions that are not multiples of three
+  arcseconds are expanded so that the edges are on 3-arcsecond
+  boundaries.  If you care about the exact size of the model or you
+  are making a multi-part model, it is best to use offsets and
+  dimensions which are multiples of three.
+
+- Areas straddling the line 180 degrees east/west probably won't work.
+  If you want to model an area where this matters (perhaps in Fiji or
+  the Aleutians) let me know and I'll fix it.
 
 
-== Examples ==
+Examples
+--------
 
-Mont Blanc.  Needs srtm_30_03.asc.
+### Mont Blanc
+
+Needs srtm_30_03.asc.
 
     hills -p 45.8334,6.8650
 
 
-Mount Kilimanjaro.  Needs srtm_44_13.asc.  We use a size of 1500x1500
-and base altitude of 600m.
+### Mount Kilimanjaro
+
+Needs srtm_44_13.asc.  We use a size of 1500x1500 and base altitude of
+600m.
 
     hills -p -3.076,37.35 -d 1500x1500 -b 600
 
+### Ben Nevis
 
-Ben Nevis.  This crosses a tile boundary - needs both srtm_35_01.asc
-and srtm_36_01.asc.
+This crosses a tile boundary - needs both srtm_35_01.asc and
+srtm_36_01.asc.
 
     hills -p 56.812,-4.99
