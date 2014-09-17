@@ -10,7 +10,7 @@ numsForArea :: Area -> Maybe [(Int, Int)]
 numsForArea area = do
   (sNum, wNum) <- boxNums (areaSW area)
   (nNum, eNum) <- boxNums (areaNE area)
-  return [(y, x) | y <- [sNum..nNum], x <- [wNum..eNum]]
+  return [(y, x) | y <- [nNum..sNum], x <- [wNum..eNum]]
 
 boxNums :: LatLong -> Maybe (Int, Int)
 boxNums pos = if valid then Just (lat1To24, long1To72) else Nothing
