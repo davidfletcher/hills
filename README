@@ -4,7 +4,9 @@ This program generates 3D models of areas of the earth's surface.
 
 It uses the SRTM 90m elevation data from CGIAR-CSI which is
 downloadable free of charge (see http://srtm.csi.cgiar.org).  It
-outputs STL.
+outputs binary STL.
+
+-- David Fletcher <david@bubblycloud.com>
 
 
 == Basic use ==
@@ -89,6 +91,17 @@ do your local positioning in arcseconds too.  It's also more accurate,
 because the program calculates the number of metres per arcsecond at
 the specified position, and if you change the position between two of
 the parts their scales may not match perfectly.
+
+
+== Positioning caveat ==
+
+The program doesn't yet do any interpolation between the input
+samples.  So the position you supply is rounded to the nearest input
+sample position, and dimensions that are not multiples of three
+arcseconds are expanded so that the edges are on 3-arcsecond
+boundaries.  If you care about the exact size of the model or you are
+making a multi-part model, it is best to use offsets and dimensions
+which are multiples of three.
 
 
 == Examples ==
