@@ -5,10 +5,12 @@ synopsis:            Generate STL models from SRTM elevation data.
 
 description:         This program generates 3D models of areas of the
                      earth's surface.
-
+                     .
                      It uses the SRTM 90m elevation data from
                      CGIAR-CSI which is downloadable free of charge
-                     (see http://srtm.csi.cgiar.org/).  It outputs STL.
+                     (see <http://srtm.csi.cgiar.org/>).  It outputs STL.
+                     .
+                     Consult the README for full instructions.
 
 license:             BSD3
 license-file:        LICENSE
@@ -19,7 +21,7 @@ homepage:            http://www.bubblycloud.com/hills/
 category:            Geography
 
 build-type:          Simple
-extra-source-files:  README
+extra-source-files:  README, test.sh
 cabal-version:       >=1.10
 
 executable hills
@@ -38,4 +40,3 @@ executable hills
   default-language:    Haskell2010
 
   ghc-options:         -Wall
---                       -fprof-auto "-with-rtsopts=-p"

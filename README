@@ -21,7 +21,7 @@ click on a point.)
 Run hills.  It won't work because we don't have the input data yet,
 but it will tell us which tiles we need.
 
-    hills --position 56,-4 out.stl
+    hills --position 56.64,-4.91 out.stl
 
 Obtain the input data tiles from CGIAR-CSI
 <http://srtm.csi.cgiar.org/SELECTION/inputCoord.asp> or a mirror.
@@ -37,7 +37,7 @@ srtm_36_01.asc.
 
 Run hills to generate a model.
 
-    hills --position 56,-4 out.stl
+    hills --position 56.64,-4.91 out.stl
 
 Look at the output in your favourite STL viewer.
 
@@ -45,14 +45,16 @@ Look at the output in your favourite STL viewer.
 Options
 -------
 
---position LAT,LONG
+    --position LAT,LONG
+    -p LAT,LONG
 
 Latitude and longitude as decimals.  North of the equator is positive,
 south is negative. East from Greenwich is positive, west is negative.
 
 Usually the centre of the area to be modelled (but see --offset).
 
---dimensions ARCSECxARCSEC
+    --dimensions ARCSECxARCSEC
+    -d ARCSECxARCSEC
 
 Size of the area to model in arcseconds, latitude first.  Defaults to
 300x600.
@@ -60,7 +62,8 @@ Size of the area to model in arcseconds, latitude first.  Defaults to
 Remember as you go further north or south from the equator, arcseconds
 of longitude get smaller.
 
---base-altitude METRES
+    --base-altitude METRES
+    -b METRES
 
 The bottom of the volume to be modelled.  Defaults to 0m (sea level).
 If you are modelling land on a plateau or massif you may want to set
@@ -68,19 +71,22 @@ this higher so that your model won't be on such a thick base.  If you
 are modelling land that goes below sea level you'll need to use a
 negative value to put the base low enough.
 
---scale FACTOR
+    --scale FACTOR
+    -s FACTOR
 
 Defaults to 100, meaning 1:100.  This might seem like a larger scale
 than anyone would want, but note that the program outputs in metres
 whereas 3D printers commonly expect millimetres, so you might already
 be getting a factor of 1000 on top of what you specify here.
 
---input-dir DIR
+    --input-dir DIR
+    -i DIR
 
 If you have your .asc files somewhere other than the current
 directory, point to them with this option.
 
---offset ARCSECxARCSEC
+    --offset ARCSECxARCSEC
+    -o ARCSECxARCSEC
 
 In arcseconds, latitude first.  Offset from the specified position to
 the southwest corner of the area.  By default the position is the
@@ -118,23 +124,49 @@ Caveats and bugs
 Examples
 --------
 
-### Mont Blanc
-
-Needs srtm_30_03.asc.
-
-    hills -p 45.8334,6.8650
-
-
-### Mount Kilimanjaro
-
-Needs srtm_44_13.asc.  We use a size of 1500x1500 and base altitude of
-600m.
-
-    hills -p -3.076,37.35 -d 1500x1500 -b 600
-
 ### Ben Nevis
 
 This crosses a tile boundary - needs both srtm_35_01.asc and
 srtm_36_01.asc.
 
-    hills -p 56.812,-4.99
+    hills -p 56.812,-4.99 ben-nevis.stl
+
+
+### Mont Blanc
+
+Needs srtm_30_03.asc.  We use a size of 500x1000 arcseconds and a base
+altitude of 500m.
+
+    hills -p 45.8334,6.8650 -d 500x1000 -b 500 mont-blanc.stl
+
+
+### Part of the Grand Canyon
+
+    hills -p 36.13,-111.93 -d 1200x1500 -b 200 grand-canyon.stl
+
+
+### Mount Kilimanjaro
+
+Needs srtm_44_13.asc.
+
+    hills -p -3.076,37.35 -d 1500x1500 -b 600 kilimanjaro.stl
+
+
+### Ochil hills
+
+A 1:50000 scale model covering an area about 26km x 13km, in eight
+parts each about 13cm x 13cm.
+
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 0,0 ochils-a0.stl
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 0,375 ochils-a1.stl
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 0,750 ochils-a2.stl
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 0,1125 ochils-a3.stl
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 210,0 ochils-b0.stl
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 210,375 ochils-b1.stl
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 210,750 ochils-b2.stl
+    hills -p 56.145,-3.96 -s 50 -d 210x375 --offset 210,1125 ochils-b3.stl
+
+The parts are laid out like this:
+
+    b0 b1 b2 b3
+    a0 a1 a2 a3
