@@ -13,6 +13,7 @@ import Control.Monad.Trans.Except
 import qualified Data.ByteString.Lazy as L
 import Data.Monoid
 import Options.Applicative
+import System.FilePath ((</>))
 import System.IO
 import Numeric (showFFloat)
 
@@ -63,7 +64,7 @@ getAreaAndFiles opts = do
   return (optCentre opts, area, map addDir files)
   where
     addDir f = case optInDir opts of Nothing -> f
-                                     Just dir -> dir ++ "/" ++ f
+                                     Just dir -> dir </> f
 
 getFiles :: Area.Area -> Err [FilePath]
 getFiles = maybeToExcept "area not covered by CGIAR data" . CGIAR.filesForArea
