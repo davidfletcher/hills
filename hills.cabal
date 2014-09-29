@@ -17,12 +17,16 @@ license-file:        LICENSE
 author:              David Fletcher
 maintainer:          david@bubblycloud.com
 copyright:           (c) 2014 David Fletcher
-homepage:            http://www.bubblycloud.com/hills/
 category:            Geography
-
+homepage:            http://www.bubblycloud.com/hills/
 build-type:          Simple
-extra-source-files:  README.md, test.sh
 cabal-version:       >=1.10
+
+extra-source-files:  README.md, test.sh
+
+source-repository head
+  type: git
+  location: https://github.com/davidfletcher/hills.git
 
 executable hills
   main-is:             Main.hs
