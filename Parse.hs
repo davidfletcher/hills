@@ -19,7 +19,7 @@ sep = sizeFromSecs (secsPerSamp, secsPerSamp)
 readAscs :: Area -> [String] -> IO Topo
 readAscs area fileNames =
   mkTopo . catMaybes <$> mapM (parseFile areaToGet) fileNames
-      where areaToGet = expandToGrid sep area
+      where areaToGet = expandBy sep (expandToGrid sep area)
 
 -- returns Nothing if the file doesn't exist
 parseFile :: Area -> String -> IO (Maybe Sect)

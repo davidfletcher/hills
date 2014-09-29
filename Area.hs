@@ -8,6 +8,7 @@ module Area ( Area
             , areaSubtract
             , areaContains
             , expandToGrid
+            , expandBy
             , areaShowUser
             )
 where
@@ -88,6 +89,13 @@ areaContains a pos = lat >= s && lat < n && long >= w && long < e
     where (lat, long) = latLongToSecs pos
           (s, w) = latLongToSecs (areaSW a)
           (n, e) = latLongToSecs (areaNE a)
+
+
+expandBy :: LatLongSize -> Area -> Area
+expandBy szd (Area sw sz) = Area sw (sizeFromSecs (x+xd, y+yd))
+  where
+    (x, y) = sizeToSecs sz
+    (xd, yd) = sizeToSecs szd
 
 expandToGrid :: LatLongSize -> Area -> Area
 expandToGrid size area = fromSWAndNE sw' ne'

@@ -63,11 +63,13 @@ type Heights = Array (Int, Int) (MetresF, MetresF, MetresF)
 topoHeights :: LatLong -> Area -> Topo -> Except [Area] (Area, Heights)
 topoHeights refPoint reqArea topo@(Topo sects) =
     case missingAreas of
-      [] -> return (area, topoHeights' refPoint area topo)
+      [] -> return (area, topoHeights' refPoint inclusiveArea topo)
       xs -> throwE xs
-    where area = expandToGrid (topoSep topo) reqArea
-          missingAreas = foldM areaSubtract area sectAreas
-          sectAreas = map sectArea sects
+    where
+      area = expandToGrid (topoSep topo) reqArea
+      inclusiveArea = expandBy (topoSep topo) area
+      missingAreas = foldM areaSubtract inclusiveArea sectAreas
+      sectAreas = map sectArea sects
 
 -- always called with areas on the grid
 topoHeights' :: LatLong -> Area -> Topo -> Heights
