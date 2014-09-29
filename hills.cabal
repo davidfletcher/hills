@@ -21,7 +21,7 @@ homepage:            http://www.bubblycloud.com/hills/
 category:            Geography
 
 build-type:          Simple
-extra-source-files:  README, test.sh
+extra-source-files:  README.md, test.sh
 cabal-version:       >=1.10
 
 executable hills
