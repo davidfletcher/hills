@@ -134,7 +134,7 @@ optParser =
                  <> value Nothing
                  <> metavar "DIR"
                  <> help "directory with input files" )
-    <*> argument Just ( metavar "OUTFILE" )
+    <*> strArgument ( metavar "OUTFILE" )
 
 parseLatLongOpt :: String -> Either String LatLong
 parseLatLongOpt s = case parseLatLong s of
