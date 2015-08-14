@@ -4,7 +4,6 @@ import Area
 import LatLong
 import Topo
 
-import Control.Applicative
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Maybe (fromMaybe, catMaybes)
 import System.Directory (doesFileExist)
