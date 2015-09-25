@@ -4,7 +4,7 @@ cabal-version: >=1.10
 build-type: Simple
 license: BSD3
 license-file: LICENSE
-copyright: (c) 2014 David Fletcher
+copyright: (c) 2014, 2015 David Fletcher
 maintainer: david@bubblycloud.com
 homepage: http://www.bubblycloud.com/hills/
 synopsis: Generate STL models from SRTM elevation data.
