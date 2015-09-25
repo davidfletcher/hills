@@ -47,5 +47,4 @@ executable hills
         Parse
         Stl
         Topo
-    ghc-options: -Wall
-
+    ghc-options: -Wall -rtsopts
