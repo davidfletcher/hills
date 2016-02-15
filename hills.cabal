@@ -1,5 +1,5 @@
 name: hills
-version: 0.1.2
+version: 0.1.2.1
 cabal-version: >=1.10
 build-type: Simple
 license: BSD3
@@ -35,7 +35,7 @@ executable hills
         bytestring >=0.10.6 && <0.11,
         directory >=1.2.2 && <1.3,
         filepath >=1.4.0 && <1.5,
-        transformers >=0.4.2 && <0.5,
+        transformers >=0.4.2 && <0.6,
         text >=1.2.1 && <1.3,
         optparse-applicative >=0.11.0 && <0.13
     default-language: Haskell2010
