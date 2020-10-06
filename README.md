@@ -24,13 +24,13 @@ but it will tell us which tiles we need.
     hills --position 56.64,-4.91 out.stl
 
 Obtain the input data tiles from CGIAR-CSI
-<http://srtm.csi.cgiar.org/SELECTION/inputCoord.asp> or a mirror.
+<http://srtm.csi.cgiar.org/srtmdata/> or a mirror.
 
-You want the ArcInfo ASCII format.  The download interface on the
-website is painful so you may find it easier just to construct a
-direct URL.
+You want 5x5 degree tiles in the ASCII format.  The download interface
+on the website is better than it used to be but it still might be
+quicker just to construct URLs directly like
 
-    wget http://srtm.csi.cgiar.org/SRT-ZIP/SRTM_v41/SRTM_Data_ArcASCII/srtm_36_01.zip
+    wget http://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/ascii/srtm_36_01.zip
 
 Unzip the downloaded file and you should obtain a file named
 srtm_36_01.asc.
